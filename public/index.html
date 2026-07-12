@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caixa - Meu Cantinho Açaí</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- CABEÇALHO -->
+    <header class="top-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #4a0072; color: white;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🔮</span>
+            <h1 style="font-size: 20px; margin: 0;">Meu Cantinho Açaí</h1>
+            <span style="background-color: #2b9348; color: white; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: bold;">PDV Online</span>
+        </div>
+        <a href="admin.html" style="background-color: rgba(255,255,255,0.15); color: white; text-decoration: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+            ⚙️ Painel de Controle
+        </a>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="main-container" style="display: grid; grid-template-columns: 1fr 400px; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto;">
+        
+        <!-- COLUNA DA ESQUERDA: CARDÁPIO -->
+        <div class="menu-section" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px;">
+            <!-- ABAS DE CATEGORIAS -->
+            <div class="tabs" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <button class="tab-btn active" onclick="filtrarCategoria('Açaí')">🟣 Açaís</button>
+                <button class="tab-btn" onclick="filtrarCategoria('Cremes')">🍨 Cremes</button>
+                <button class="tab-btn" onclick="filtrarCategoria('Adicionais')">🍓 Adicionais</button>
+                <button class="tab-btn" onclick="filtrarCategoria('Coberturas')">🍫 Coberturas</button>
+                <button class="tab-btn" onclick="filtrarCategoria('Tapiocas')">🥞 Tapiocas</button>
+                <button class="tab-btn" onclick="filtrarCategoria('Bebidas')">🥤 Bebidas</button>
+            </div>
+
+            <!-- GRADE DE PRODUTOS -->
+            <div id="product-grid" class="product-grid">
+                <!-- Os produtos vão aparecer aqui automaticamente -->
+            </div>
+        </div>
+
+        <!-- COLUNA DA DIREITA: CARRINHO -->
+        <div class="cart-section" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; height: calc(100vh - 110px); position: sticky; top: 80px;">
+            
+            <div>
+                <!-- TOPO DO CARRINHO -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dee2e6; padding-bottom: 15px; margin-bottom: 15px;">
+                    <h2 style="font-size: 18px; margin: 0; color: #343a40; display: flex; align-items: center; gap: 8px;">🛒 Pedido Atual</h2>
+                    <span id="itens-contagem" style="font-size: 13px; color: #868e96; font-weight: bold;">0 itens</span>
+                </div>
+
+                <!-- LISTA DE ITENS DO CARRINHO -->
+                <ul id="cart-items" class="cart-items" style="list-style: none; padding: 0; margin: 0; max-height: calc(100vh - 420px); overflow-y: auto;">
+                    <!-- Itens do carrinho aparecem aqui -->
+                </ul>
+            </div>
+
+            <!-- RODAPÉ DO CARRINHO -->
+            <div class="cart-footer">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-weight: bold; color: #495057;">🛵 Taxa de Entrega:</span>
+                    <div>
+                        <span>R$ </span>
+                        <input type="number" id="taxa-entrega" value="0.00" step="0.50" min="0" style="width: 80px; padding: 6px; text-align: right; border: 1px solid #ced4da; border-radius: 4px; font-weight: bold;" onchange="atualizarCarrinho()">
+                    </div>
+                </div>
+
+                <div class="total-area" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #2b2d42; border-top: 2px dashed #ced4da; padding-top: 15px;">
+                    <span>Total a Pagar:</span>
+                    <span id="cart-total-value" style="color: #2b2d42;">R$ 0.00</span>
+                </div>
+
+                <div style="text-align: center; margin-bottom: 10px; font-size: 11px; font-weight: bold; color: #495057; text-transform: uppercase; background: #e9ecef; padding: 6px; border-radius: 4px;">
+                    👇 Finalizar Pedido e Imprimir Comprovante:
+                </div>
+
+                <div class="payment-methods" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                    <button class="pay-btn btn-dinheiro" onclick="finalizarVenda('Dinheiro')" style="background: #2b9348; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">💵 DINHEIRO</button>
+                    <button class="pay-btn btn-pix" onclick="finalizarVenda('PIX')" style="background: #0077b6; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">💠 PIX</button>
+                    <button class="pay-btn btn-cartao" onclick="finalizarVenda('Cartão')" style="background: #d4a373; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">💳 CARTÃO</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- LIGAÇÃO COM O JAVASCRIPT -->
+    <script src="app.js"></script>
+</body>
+</html>

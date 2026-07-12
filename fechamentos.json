@@ -1,0 +1,23 @@
+[
+  {
+    "data": "07/07/2026, 23:44:56",
+    "valorInicial": 0,
+    "vendasDoDia": 263,
+    "totalEsperado": 263,
+    "totalGaveta": 300
+  },
+  {
+    "data": "07/07/2026, 23:49:08",
+    "valorInicial": 0,
+    "vendasDoDia": 263,
+    "totalEsperado": 263,
+    "totalGaveta": 100
+  },
+  {
+    "data": "08/07/2026, 22:40:17",
+    "valorInicial": 0,
+    "vendasDoDia": 292,
+    "totalEsperado": 292,
+    "totalGaveta": 0
+  }
+]
