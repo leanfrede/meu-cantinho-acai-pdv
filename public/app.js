@@ -1,577 +1,662 @@
-let produtosTodos = []; 
-let carrinho = [];      
-let valorTotal = 0;
-let categoriaAtual = 'Açaí'; 
+// ==========================================================================
+// VARIÁVEIS GLOBAIS DO SISTEMA
+// ==========================================================================
+let produtosTodos = [];
+let carrinho = [];
+let categoriaAtual = 'Açaí';
+let produtoSendoConfigurado = null;
+let totalVendaAtual = 0;
+let totalItensCarrinho = 0;
+let ultimoPedidoSalvo = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-    carregarProdutos();
+let caixaAberto = localStorage.getItem('caixa_aberto') === 'true';
+let fundoDeTroco = parseFloat(localStorage.getItem('caixa_fundo')) || 0;
+
+const DICIONARIO_SOCIOS = {
+    "1111": "Sócio A",
+    "2222": "Sócio B"
+};
+let pinDigitado = "";
+
+function formatarDataHora(isoString) {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    return d.toLocaleString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+}
+
+// ==========================================================================
+// CONFIGURAÇÃO DOS ATALHOS DE TECLADO
+// ==========================================================================
+document.addEventListener('keydown', (event) => {
+    if (!document.getElementById('product-grid')) return;
+    if (event.key === 'F2') { event.preventDefault(); finalizarVenda(); }
+    if (event.key === 'Escape') { event.preventDefault(); fecharModal(); fecharModalPagamento(); fecharModalSucesso(); }
 });
 
+// ==========================================================================
+// INICIALIZAÇÃO AUTOMÁTICA
+// ==========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('product-grid')) carregarProdutos();
+    
+    if (document.getElementById('lista-produtos')) {
+        if (sessionStorage.getItem('admin_autenticado') === 'true') {
+            liberarPainelAdmin();
+        } else {
+            document.getElementById('tela-bloqueio-admin').style.display = 'flex';
+            document.getElementById('painel-conteudo-protegido').style.display = 'none';
+        }
+    }
+
+    if (document.getElementById('panel-cozinha')) {
+        carregarPedidosCozinha();
+        setInterval(carregarPedidosCozinha, 4000);
+    }
+});
+
+// ==========================================================================
+// LÓGICA DE LOGIN POR PIN MULTI-SÓCIO
+// ==========================================================================
+function digitarPin(numero) {
+    if (pinDigitado.length >= 4) return;
+    pinDigitado += numero;
+    document.getElementById('pin-visor').innerText = "•".repeat(pinDigitado.length);
+
+    if (pinDigitado.length === 4) {
+        setTimeout(verificarPin, 200);
+    }
+}
+
+function limparPin() {
+    pinDigitado = "";
+    document.getElementById('pin-visor').innerText = "";
+}
+
+function verificarPin() {
+    if (DICIONARIO_SOCIOS[pinDigitado]) {
+        const socioNome = DICIONARIO_SOCIOS[pinDigitado];
+        sessionStorage.setItem('admin_autenticado', 'true');
+        sessionStorage.setItem('admin_usuario', socioNome);
+        liberarPainelAdmin();
+    } else {
+        alert("❌ PIN Incorreto! Acesso negado.");
+        limparPin();
+    }
+}
+
+function liberarPainelAdmin() {
+    document.getElementById('tela-bloqueio-admin').style.display = 'none';
+    document.getElementById('painel-conteudo-protegido').style.display = 'block';
+
+    const elSocio = document.getElementById('nome-socio-logado');
+    if (elSocio) elSocio.innerText = sessionStorage.getItem('admin_usuario');
+
+    carregarProdutosAdmin();
+    carregarHistoricoVendas();
+    carregarMovimentacoesCaixa();
+    atualizarTelaCaixa();
+}
+
+function fazerLogoutAdmin() {
+    sessionStorage.removeItem('admin_autenticado');
+    sessionStorage.removeItem('admin_usuario');
+    window.location.reload();
+}
+
+function sairParaCaixa() { window.location.href = "index.html"; }
+
+// ==========================================================================
+// FRENTE DE CAIXA (VENDAS)
+// ==========================================================================
 async function carregarProdutos() {
     try {
         const response = await fetch('http://localhost:3000/api/products');
         produtosTodos = await response.json();
         renderizarProdutos();
-    } catch (error) {
-        console.error("Erro ao carregar cardápio:", error);
-    }
+    } catch (error) { console.error("Erro ao carregar produtos:", error); }
 }
 
 function renderizarProdutos() {
     const grid = document.getElementById('product-grid');
-    if(!grid) return;
+    if (!grid) return;
     grid.innerHTML = '';
-    
+
     const produtosFiltrados = produtosTodos.filter(p => {
         const catBanco = (p.category || '').toLowerCase().trim();
         const catAba = categoriaAtual.toLowerCase().trim();
-
-        if (catAba === 'açaí' || catAba === 'açaís') {
-            return catBanco === 'açaí' || catBanco === 'açaís' || catBanco === 'acai' || catBanco === 'acais';
-        }
-        if (catAba === 'cremes' || catAba === 'creme') {
-            return catBanco === 'cremes' || catBanco === 'creme';
-        }
-
+        if (catAba === 'açaí' || catAba === 'açaís') return catBanco === 'açaí' || catBanco === 'açaís' || catBanco === 'acai' || catBanco === 'acais';
+        if (catAba === 'cremes' || catAba === 'creme') return catBanco === 'cremes' || catBanco === 'creme';
         return catBanco === catAba;
     });
 
-    if(produtosFiltrados.length === 0) {
-        grid.innerHTML = `<p style="grid-column: 1/-1; color: #868e96; text-align: center; margin-top: 40px; font-size: 16px;">Nenhum produto cadastrado em <strong>${categoriaAtual}</strong>.</p>`;
+    if (produtosFiltrados.length === 0) {
+        grid.innerHTML = `<p style="grid-column: 1/-1; color: #868e96; text-align: center; margin-top: 20px;">Nenhum produto em <strong>${categoriaAtual}</strong>.</p>`;
         return;
     }
 
     produtosFiltrados.forEach(p => {
         const btn = document.createElement('button');
         btn.className = 'produto-btn';
-        btn.innerHTML = `
-            <span>${p.name}</span>
-            <span class="price-tag">R$ ${p.price.toFixed(2)}</span>
-        `;
-        btn.onclick = () => adicionarAoCarrinho(p);
+        const disponivel = p.available !== false;
+
+        if (!disponivel) {
+            btn.style.opacity = '0.45'; btn.style.cursor = 'not-allowed'; btn.style.border = '2px dashed #dc3545';
+            btn.innerHTML = `<span>${p.name}<br><small style="color:#dc3545; font-weight:bold; font-size:11px;">⚠️ ESGOTADO</small></span><span class="price-tag" style="background:#6c757d; color:white;">R$ ${p.price.toFixed(2)}</span>`;
+            btn.onclick = () => alert(`⚠️ Desculpe! O ingrediente ou tamanho "${p.name}" acabou no estoque.`);
+        } else {
+            btn.innerHTML = `<span>${p.name}</span><span class="price-tag">R$ ${p.price.toFixed(2)}</span>`;
+            btn.onclick = () => abrirModal(p);
+        }
         grid.appendChild(btn);
     });
 }
 
 function filtrarCategoria(categoria) {
     categoriaAtual = categoria;
-    const botoes = document.querySelectorAll('.tab-btn');
-    botoes.forEach(btn => {
-        const textoBotao = btn.innerText.toLowerCase();
-        const catProcurada = categoria.toLowerCase();
-        
-        if(textoBotao.includes(catProcurada) || (catProcurada === 'açaí' && textoBotao.includes('açaí'))) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.innerText.toLowerCase().includes(categoria.toLowerCase())) btn.classList.add('active');
+        else btn.classList.remove('active');
     });
     renderizarProdutos();
 }
 
-function adicionarAoCarrinho(produto) {
-    const itemExistente = carrinho.find(item => item.id === produto.id);
-    if (itemExistente) {
-        itemExistente.quantidade += 1;
-    } else {
-        carrinho.push({ 
-            id: produto.id, 
-            name: produto.name, 
-            price: produto.price, 
-            category: produto.category,
-            quantidade: 1 
-        });
-    }
-    atualizarCarrinho();
+// O MONTADOR (MODAL DE PERSONALIZAÇÃO)
+function abrirModal(produto) {
+    produtoSendoConfigurado = produto;
+    const modalTitulo = document.getElementById('modal-titulo');
+    if (modalTitulo) modalTitulo.innerText = `Personalizar: ${produto.name}`;
+    document.querySelectorAll('#modal-conteudo input[type="checkbox"]').forEach(cb => cb.checked = false);
+    const modalDiv = document.getElementById('modal-produto');
+    if (modalDiv) modalDiv.style.display = 'flex';
 }
 
-function removerDoCarrinho(id) {
-    const itemIndex = carrinho.findIndex(item => item.id === id);
-    if (itemIndex > -1) {
-        if (carrinho[itemIndex].quantidade > 1) {
-            carrinho[itemIndex].quantidade -= 1;
-        } else {
-            carrinho.splice(itemIndex, 1);
-        }
-    }
-    atualizarCarrinho();
+function fecharModal() { const modalDiv = document.getElementById('modal-produto'); if (modalDiv) modalDiv.style.display = 'none'; }
+
+function confirmarAdicao() {
+    const coberturas = Array.from(document.querySelectorAll('input[name="cobertura"]:checked')).map(cb => cb.value);
+    const acompanhamentos = Array.from(document.querySelectorAll('input[name="acompanhamento"]:checked')).map(cb => cb.value);
+
+    if (coberturas.length > 2) { alert("⚠️ Escolha no máximo 2 Coberturas."); return; }
+    if (acompanhamentos.length > 5) { alert("⚠️ Escolha no máximo 5 Acompanhamentos."); return; }
+
+    let observacao = "";
+    if (coberturas.length > 0) observacao += `Coberturas: ${coberturas.join(', ')}`;
+    if (acompanhamentos.length > 0) observacao += (observacao ? ' | ' : '') + `Acomps: ${acompanhamentos.join(', ')}`;
+    if (!observacao) observacao = "Copos simples tradicional";
+
+    carrinho.push({ id: produtoSendoConfigurado.id, name: produtoSendoConfigurado.name, price: produtoSendoConfigurado.price, obs: observacao });
+    atualizarCarrinhoUI();
+    fecharModal();
 }
 
-function atualizarCarrinho() {
+function atualizarCarrinhoUI() {
     const lista = document.getElementById('cart-items');
-    const elTotal = document.getElementById('cart-total-value');
+    const elTotal = document.getElementById('total-price');
     const elContagem = document.getElementById('itens-contagem');
-    
+    if (!lista) return;
     lista.innerHTML = '';
     let subtotal = 0;
-    let totalItens = 0;
-    
-    let qtdAdicionais = 0;
-    let qtdCoberturas = 0;
-    
-    carrinho.forEach(item => {
-        const subtotalItem = item.price * item.quantidade;
-        subtotal += subtotalItem;
-        totalItens += item.quantidade;
-        
-        const cat = (item.category || '').toLowerCase();
-        if (cat === 'adicionais') {
-            qtdAdicionais += item.quantidade;
-        } else if (cat === 'coberturas') {
-            qtdCoberturas += item.quantidade;
-        }
-        
-        const li = document.createElement('li');
-        li.className = 'cart-item';
-        li.innerHTML = `
-            <div class="cart-item-info">
-                <span><span class="cart-item-qty">${item.quantidade}x</span><strong>${item.name}</strong></span>
-                <span style="font-size: 12px; color: #868e96; margin-left: 32px;">Unid: R$ ${item.price.toFixed(2)}</span>
-            </div>
-            <div class="cart-item-controls">
-                <span style="font-weight: bold; color: #495057;">R$ ${subtotalItem.toFixed(2)}</span>
-                <button class="remover-btn" onclick="removerDoCarrinho(${item.id})">❌</button>
-            </div>
-        `;
-        lista.appendChild(li);
-    });
-    
-    let taxaAdicionaisExtra = 0;
-    if (qtdAdicionais > 5) {
-        taxaAdicionaisExtra = 2.00;
-        const liTaxa = document.createElement('li');
-        liTaxa.className = 'cart-item';
-        liTaxa.style.color = '#e67e22';
-        liTaxa.innerHTML = `
-            <div class="cart-item-info">
-                <span>⚠️ <strong>Taxa: Adicionais Excedidos (${qtdAdicionais}/5)</strong></span>
-            </div>
-            <div class="cart-item-controls"><span style="font-weight: bold;">R$ 2.00</span></div>
-        `;
-        lista.appendChild(liTaxa);
-    }
 
-    let taxaCoberturasExtra = 0;
-    if (qtdCoberturas > 2) {
-        taxaCoberturasExtra = 2.00;
-        const liTaxaCob = document.createElement('li');
-        liTaxaCob.className = 'cart-item';
-        liTaxaCob.style.color = '#e67e22';
-        liTaxaCob.innerHTML = `
-            <div class="cart-item-info">
-                <span>⚠️ <strong>Taxa: Coberturas Excedidas (${qtdCoberturas}/2)</strong></span>
-            </div>
-            <div class="cart-item-controls"><span style="font-weight: bold;">R$ 2.00</span></div>
+    carrinho.forEach((item, index) => {
+        subtotal += item.price;
+        const div = document.createElement('div');
+        div.className = 'cart-item-row';
+        div.innerHTML = `
+            <div class="cart-item-info"><strong>1x ${item.name}</strong><small>${item.obs}</small></div>
+            <div class="cart-item-right"><span>R$ ${item.price.toFixed(2)}</span><button class="btn-remover-item" onclick="removerDoCarrinho(${index})">❌</button></div>
         `;
-        lista.appendChild(liTaxaCob);
-    }
-    
-    const taxaEntrega = parseFloat(document.getElementById('taxa-entrega')?.value) || 0;
-    valorTotal = subtotal + taxaEntrega + taxaAdicionaisExtra + taxaCoberturasExtra;
-    
-    if(elTotal) elTotal.innerText = `R$ ${valorTotal.toFixed(2)}`;
-    if(elContagem) elContagem.innerText = `${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`;
+        lista.appendChild(div);
+    });
+    if (elTotal) elTotal.innerText = `R$ ${subtotal.toFixed(2)}`;
+    if (elContagem) elContagem.innerText = `${carrinho.length} ${carrinho.length === 1 ? 'item' : 'itens'}`;
 }
 
-// GERADOR DE CUPOM / NOTA FISCAL PARA IMPRESSÃO
-function imprimirComprovante(itensPedido, totalPedido, metodo, trocoMsg, taxaEntrega) {
-    const janelaPrint = window.open('', '_blank', 'width=350,height=600');
-    const dataHora = new Date().toLocaleString('pt-BR');
-    
-    let html = `
-    <html>
-    <head>
-        <title>Comprovante - Meu Cantinho Açaí</title>
-        <style>
-            body { font-family: 'Courier New', Courier, monospace; font-size: 12px; margin: 0; padding: 15px; width: 280px; color: #000; }
-            .header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 8px; }
-            .title { font-size: 16px; font-weight: bold; }
-            .item { display: flex; justify-content: space-between; margin: 4px 0; }
-            .total-section { border-top: 1px dashed #000; margin-top: 10px; padding-top: 8px; font-weight: bold; }
-            .footer { text-align: center; margin-top: 15px; font-size: 11px; border-top: 1px dashed #000; padding-top: 8px; }
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <div class="title">MEU CANTINHO AÇAÍ</div>
-            <div>Comprovante de Pedido</div>
-            <div style="font-size: 10px; margin-top: 4px;">${dataHora}</div>
-        </div>
-        <div>
-    `;
-    
-    itensPedido.forEach(i => {
-        html += `
-            <div class="item">
-                <span>${i.quantidade}x ${i.name}</span>
-                <span>R$ ${(i.price * i.quantidade).toFixed(2)}</span>
-            </div>
-        `;
-    });
+function removerDoCarrinho(index) { carrinho.splice(index, 1); atualizarCarrinhoUI(); }
 
-    if (taxaEntrega > 0) {
-        html += `
-            <div class="item">
-                <span>🛵 Taxa de Entrega</span>
-                <span>R$ ${taxaEntrega.toFixed(2)}</span>
-            </div>
-        `;
-    }
+function finalizarVenda() {
+    if (carrinho.length === 0) { alert('⚠️ O carrinho está vazio!'); return; }
+    const valorTotalStr = document.getElementById('total-price').innerText.replace('R$', '').trim();
+    totalItensCarrinho = parseFloat(valorTotalStr);
+    totalVendaAtual = totalItensCarrinho;
 
-    html += `
-        </div>
-        <div class="total-section">
-            <div class="item" style="font-size: 14px;">
-                <span>TOTAL:</span>
-                <span>R$ ${totalPedido.toFixed(2)}</span>
-            </div>
-            <div class="item">
-                <span>Forma de Pagto:</span>
-                <span>${metodo}</span>
-            </div>
-            ${trocoMsg ? `<div style="margin-top: 6px; font-size: 11px; font-weight: normal; white-space: pre-line;">${trocoMsg.trim()}</div>` : ''}
-        </div>
-        <div class="footer">
-            Obrigado pela preferência!<br>Volte sempre! 💜
-        </div>
-        <script>
-            window.onload = function() { 
-                window.print(); 
-                // Opcional: window.close() após imprimir;
-            }
-        </script>
-    </body>
-    </html>
-    `;
-    
-    janelaPrint.document.write(html);
-    janelaPrint.document.close();
+    document.getElementById('pedido-tipo').value = 'Balcão';
+    document.getElementById('taxa-entrega').value = '';
+    document.getElementById('div-taxa-entrega').style.display = 'none';
+    document.getElementById('modal-pagamento-total').innerText = `R$ ${totalVendaAtual.toFixed(2)}`;
+    document.getElementById('pagamento-metodo').value = 'Dinheiro';
+    document.getElementById('pagamento-recebido').value = '';
+    document.getElementById('pagamento-troco').innerText = 'R$ 0.00';
+    document.getElementById('div-calculo-troco').style.display = 'block';
+    document.getElementById('modal-pagamento').style.display = 'flex';
 }
 
-// FINALIZAR PEDIDO E EMITIR COMPROVANTE
-async function finalizarVenda(metodoPagamento) {
-    if (carrinho.length === 0) {
-        alert('⚠️ Selecione pelo menos um produto antes de finalizar a venda!');
-        return;
-    }
+function fecharModalPagamento() { document.getElementById('modal-pagamento').style.display = 'none'; }
 
-    let mensagemTroco = '';
+function alternarTipoPedido() {
+    const tipo = document.getElementById('pedido-tipo').value;
+    const divTaxa = document.getElementById('div-taxa-entrega');
+    if (tipo === 'Entrega') divTaxa.style.display = 'block';
+    else { divTaxa.style.display = 'none'; document.getElementById('taxa-entrega').value = ''; }
+    calcularTotalComEntrega();
+}
 
-    if (metodoPagamento === 'Dinheiro') {
-        const inputValor = prompt(`💳 Total a Pagar: R$ ${valorTotal.toFixed(2)}\n\nO cliente vai pagar com qual valor?`);
-        if (inputValor === null) return; 
+function calcularTotalComEntrega() {
+    const taxa = parseFloat(document.getElementById('taxa-entrega').value) || 0;
+    totalVendaAtual = totalItensCarrinho + taxa;
+    document.getElementById('modal-pagamento-total').innerText = `R$ ${totalVendaAtual.toFixed(2)}`;
+    calcularTroco();
+}
 
-        if (inputValor.trim() !== "") {
-            const valorRecebido = parseFloat(inputValor.replace(',', '.')); 
-            if (valorRecebido < valorTotal) {
-                alert(`❌ Valor insuficiente! Faltam R$ ${(valorTotal - valorRecebido).toFixed(2)}.`);
-                return;
-            }
-            const troco = valorRecebido - valorTotal;
-            if (troco > 0) {
-                mensagemTroco = `Mandar Troco Para: R$ ${valorRecebido.toFixed(2)}\nValor do Troco: R$ ${troco.toFixed(2)}`;
-            } else {
-                mensagemTroco = `Valor exato (Sem troco).`;
-            }
-        }
-    }
+function alternarCampoTroco() {
+    const metodo = document.getElementById('pagamento-metodo').value;
+    const divTroco = document.getElementById('div-calculo-troco');
+    if (metodo === 'Dinheiro') divTroco.style.display = 'block';
+    else divTroco.style.display = 'none';
+}
+
+function calcularTroco() {
+    const recebido = parseFloat(document.getElementById('pagamento-recebido').value) || 0;
+    const troco = recebido - totalVendaAtual;
+    const elTroco = document.getElementById('pagamento-troco');
+    if (troco < 0) { elTroco.innerText = "Valor insuficiente"; elTroco.style.color = "#c92a2a"; }
+    else { elTroco.innerText = `R$ ${troco.toFixed(2)}`; elTroco.style.color = "#2b8a3e"; }
+}
+
+async function confirmarVendaComPagamento() {
+    const metodo = document.getElementById('pagamento-metodo').value;
+    const recebido = parseFloat(document.getElementById('pagamento-recebido').value) || 0;
+    const tipoPed = document.getElementById('pedido-tipo').value;
+    const taxaPed = parseFloat(document.getElementById('taxa-entrega').value) || 0;
+
+    if (metodo === 'Dinheiro' && recebido < totalVendaAtual) { alert("⚠️ O valor entregue é insuficiente!"); return; }
+
+    const troco = metodo === 'Dinheiro' ? (recebido - totalVendaAtual) : 0;
+    const dadosVenda = {
+        itens: carrinho, total: totalVendaAtual, formaPagamento: metodo,
+        valorRecebido: metodo === 'Dinheiro' ? recebido : totalVendaAtual, troco: troco,
+        tipoPedido: tipoPed, taxaEntrega: taxaPed, data: new Date().toISOString()
+    };
 
     try {
-        const taxaEntrega = parseFloat(document.getElementById('taxa-entrega')?.value) || 0;
-        const itensParaO_Banco = [...carrinho]; 
-        
-        if (taxaEntrega > 0) {
-            itensParaO_Banco.push({ name: '🛵 Taxa de Entrega', price: taxaEntrega, quantidade: 1 });
-        }
-
-        let qtdAdicionais = 0;
-        let qtdCoberturas = 0;
-        carrinho.forEach(i => {
-            const cat = (i.category || '').toLowerCase();
-            if (cat === 'adicionais') qtdAdicionais += i.quantidade;
-            if (cat === 'coberturas') qtdCoberturas += i.quantidade;
-        });
-
-        if (qtdAdicionais > 5) itensParaO_Banco.push({ name: '⚠️ Taxa Adicionais Excedidos', price: 2.00, quantidade: 1 });
-        if (qtdCoberturas > 2) itensParaO_Banco.push({ name: '⚠️ Taxa Coberturas Excedidas', price: 2.00, quantidade: 1 });
-
-        const response = await fetch('http://localhost:3000/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                items: JSON.stringify(itensParaO_Banco),
-                total: valorTotal,
-                payment_method: metodoPagamento
-            })
-        });
-
+        const response = await fetch('http://localhost:3000/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosVenda) });
         if (response.ok) {
-            // GERA E IMPRIME O COMPROVANTE NA HORA
-            imprimirComprovante(carrinho, valorTotal, metodoPagamento, mensagemTroco, taxaEntrega);
-
-            carrinho = [];
-            if(document.getElementById('taxa-entrega')) document.getElementById('taxa-entrega').value = '0.00';
-            atualizarCarrinho();
-        } else {
-            alert('Falha ao salvar a venda no servidor.');
+            ultimoPedidoSalvo = await response.json();
+            carrinho = []; atualizarCarrinhoUI(); fecharModalPagamento();
+            document.getElementById('whatsapp-cliente').value = '';
+            document.getElementById('modal-sucesso').style.display = 'flex';
         }
-    } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro de conexão com o servidor.');
-    }
+    } catch (error) { console.error(error); }
 }
-/* ==========================================================================
-   --- LÓGICA DO PAINEL ADMINISTRATIVO E CONTROLE DE CAIXA ---
-   ========================================================================== */
 
-// Variáveis de Estado do Caixa (Armazenadas no navegador para não sumir ao atualizar)
-let caixaAberto = localStorage.getItem('caixa_aberto') === 'true';
-let fundoDeTroco = parseFloat(localStorage.getItem('caixa_fundo')) || 0;
-let totalVendasDia = parseFloat(localStorage.getItem('caixa_vendas')) || 0;
+function fecharModalSucesso() { document.getElementById('modal-sucesso').style.display = 'none'; ultimoPedidoSalvo = null; }
 
-// Inicialização do Painel Administrativo
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('lista-produtos')) {
-        carregarProdutosAdmin();
-        atualizarTelaCaixa();
-    }
-});
+function enviarCupomWhatsApp() {
+    if (!ultimoPedidoSalvo) return;
+    let fone = document.getElementById('whatsapp-cliente').value.replace(/\D/g, '');
+    if (!fone || fone.length < 10) { alert("⚠️ Digite um número válido com DDD!"); return; }
+    if (fone.length === 10 || fone.length === 11) fone = '55' + fone;
 
-// 1. CARREGAR E EXIBIR PRODUTOS CADASTRADOS (COM VISUAL MODERNO)
-async function carregarProdutosAdmin() {
-    const lista = document.getElementById('lista-produtos');
-    if (!lista) return;
+    let msg = `*🔮 MEU CANTINHO AÇAÍ* \n-----------------------------\n*COMPROVANTE DE COMPRA*\n*Pedido:* #${ultimoPedidoSalvo.id} (${ultimoPedidoSalvo.tipoPedido})\n*Data:* ${new Date(ultimoPedidoSalvo.data).toLocaleString('pt-BR')}\n-----------------------------\n`;
+    ultimoPedidoSalvo.itens.forEach(i => { msg += `• *1x ${i.name}*\n  _${i.obs}_\n  R$ ${i.price.toFixed(2)}\n\n`; });
+    msg += `-----------------------------\n`;
+    if (ultimoPedidoSalvo.tipoPedido === 'Entrega') msg += `*Taxa de Entrega:* R$ ${ultimoPedidoSalvo.taxaEntrega.toFixed(2)}\n`;
+    msg += `*Forma de Pagto:* ${ultimoPedidoSalvo.formaPagamento}\n`;
+    if (ultimoPedidoSalvo.formaPagamento === 'Dinheiro') msg += `*Valor Entregue:* R$ ${ultimoPedidoSalvo.valorRecebido.toFixed(2)}\n*Troco Devolvido:* R$ ${ultimoPedidoSalvo.troco.toFixed(2)}\n`;
+    msg += `*VALOR TOTAL: R$ ${ultimoPedidoSalvo.total.toFixed(2)}*\n-----------------------------\n_Obrigado pela preferência! Volte sempre!_ ✨🍧`;
+    window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+async function registrarMovimentacao(tipo) {
+    const valorInput = prompt(`💰 Digite o valor para a ${tipo.toUpperCase()}:`);
+    if (!valorInput) return;
+    const valor = parseFloat(valorInput.replace(',', '.'));
+    const motivo = prompt(`📝 Qual o motivo?`);
+    if (!motivo) return;
+    
+    const socioResponsavel = sessionStorage.getItem('admin_usuario') || 'Balcão';
 
     try {
-        const response = await fetch('http://localhost:3000/api/products');
-        const produtos = await response.json();
-        
-        lista.innerHTML = '';
+        await fetch('http://localhost:3000/api/caixa', { 
+            method: 'POST', 
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Usuario': socioResponsavel
+            }, 
+            body: JSON.stringify({ tipo, valor, motivo, data: new Date().toISOString() }) 
+        });
+        alert(`✅ Registrado com sucesso!`);
+    } catch (error) { console.error(error); }
+}
 
-        if (produtos.length === 0) {
-            lista.innerHTML = `<div style="padding: 20px; text-align: center; color: #868e96;">Nenhum produto cadastrado no momento.</div>`;
+// ==========================================================================
+// MONITOR DE PEDIDOS DA COZINHA (KDS TRADICIONAL)
+// ==========================================================================
+async function carregarPedidosCozinha() {
+    const painel = document.getElementById('panel-cozinha');
+    const contador = document.getElementById('cozinha-contador');
+    if (!painel) return;
+
+    try {
+        const response = await fetch('http://localhost:3000/api/orders');
+        const pedidos = await response.json();
+        
+        const hoje = new Date().toISOString().split('T')[0];
+        const filaPendente = pedidos.filter(o => o.data.startsWith(hoje) && o.status === 'Pendente');
+
+        if (contador) contador.innerText = `${filaPendente.length} ${filaPendente.length === 1 ? 'Pedido na Fila' : 'Pedidos na Fila'}`;
+        painel.innerHTML = '';
+
+        if (filaPendente.length === 0) {
+            painel.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px; color:#868e96; font-size:18px;">✨ Nossos clientes já estão de barriga cheia!<br>Nenhum pedido na fila de montagem.</div>`;
             return;
         }
 
+        filaPendente.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'card-pedido-cozinha';
+            const badgeClass = p.tipoPedido === 'Entrega' ? 'pedido-badge-entrega' : 'pedido-badge-balcao';
+            const badgeTexto = p.tipoPedido === 'Entrega' ? '🛵 ENTREGA' : '🏪 BALCÃO';
+
+            let itensHtml = '';
+            p.itens.forEach(i => { itensHtml += `<div class="item-linha-cozinha"><strong>📦 1x ${i.name}</strong><p>📋 ${i.obs}</p></div>`; });
+
+            const horaPedido = new Date(p.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            card.innerHTML = `
+                <div>
+                    <div class="pedido-topo"><span style="font-weight:bold; font-size:16px;">Comanda #${p.id}</span><span class="${badgeClass}">${badgeTexto}</span></div>
+                    <div style="font-size:13px; color:#868e96; margin-bottom:12px;">⏰ Recebido às: ${horaPedido}</div>
+                    <div class="pedido-corpo-itens">${itensHtml}</div>
+                </div>
+                <button class="btn-pronto" onclick="concluirPreparoCozinha(${p.id})">✔ CONCLUÍDO / PRONTO</button>
+            `;
+            painel.appendChild(card);
+        });
+    } catch (error) { console.error("Erro no painel da cozinha:", error); }
+}
+
+async function concluirPreparoCozinha(id) {
+    try {
+        const response = await fetch(`http://localhost:3000/api/orders/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'Pronto' }) });
+        if (response.ok) carregarPedidosCozinha();
+    } catch (e) { console.error(e); }
+}
+
+// ==========================================================================
+// PAINEL ADMINISTRATIVO AUDITADO (AUDITORIA POR SÓCIO COM DATA E HORA)
+// ==========================================================================
+async function carregarProdutosAdmin() {
+    const lista = document.getElementById('lista-produtos');
+    if (!lista) return;
+    try {
+        const response = await fetch('http://localhost:3000/api/products');
+        const produtos = await response.json();
+        lista.innerHTML = '';
         produtos.forEach(p => {
+            const disponivel = p.available !== false;
+            const statusTexto = disponivel ? '🟢 Ativo' : '🔴 Esgotado';
+            const statusCor = disponivel ? '#2b9348' : '#dc3545';
             const div = document.createElement('div');
-            div.className = 'item-produto-admin';
+            
+            const dataStr = p.dataAtividade ? ` em ${formatarDataHora(p.dataAtividade)}` : '';
+            const responsavelStr = p.usuarioAtividade ? `(Modificado por: ${p.usuarioAtividade}${dataStr})` : '';
+
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
+                    <div>
+                        <strong>${p.name}</strong> <span style="font-size:11px; background:#eeb4ff; padding:2px 6px; border-radius:10px;">${p.category}</span>
+                        <div style="font-size:12px; color:#666;">R$ ${p.price.toFixed(2)} <br><span style="color:#0077b6; font-weight:bold; font-size:11px;">${responsavelStr}</span></div>
+                    </div>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button onclick="alternarStatusProduto(${p.id}, ${disponivel})" style="background:${statusCor}; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">${statusTexto}</button>
+                        <button onclick="editarProduto(${p.id}, '${p.name}', ${p.price})" style="background:#ffc107; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">✏️</button>
+                        <button onclick="excluirProduto(${p.id})" style="background:#dc3545; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">🗑️</button>
+                    </div>
+                </div>`;
+            lista.appendChild(div);
+        });
+    } catch (e) { console.error(e); }
+}
+
+async function alternarStatusProduto(id, statusAtual) {
+    try {
+        const response = await fetch(`http://localhost:3000/api/products/${id}`, { 
+            method: 'PUT', 
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Usuario': sessionStorage.getItem('admin_usuario')
+            }, 
+            body: JSON.stringify({ available: !statusAtual }) 
+        });
+        if (response.ok) carregarProdutosAdmin();
+    } catch (error) { console.error(error); }
+}
+
+async function carregarHistoricoVendas() {
+    const lista = document.getElementById('historico-vendas');
+    if (!lista) return;
+    try {
+        const res = await fetch('http://localhost:3000/api/orders');
+        const orders = await res.json();
+        const hoje = new Date().toISOString().split('T')[0];
+        const ordHoje = orders.filter(o => o.data.startsWith(hoje));
+
+        lista.innerHTML = '';
+        if (ordHoje.length === 0) { lista.innerHTML = '<div style="padding:15px; color:#868e96;">Nenhuma venda realizada hoje.</div>'; return; }
+        
+        ordHoje.reverse().forEach(o => {
+            const div = document.createElement('div');
+            div.style = "padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;";
+            const lblEntrega = o.tipoPedido === 'Entrega' ? '🛵' : '🏪';
+            
+            let statusBadge = `<span style="font-size:12px; font-weight:bold; color:${o.status === 'Pronto' ? '#2b9348' : '#ffc107'}">${(o.status || 'Pendente').toUpperCase()}</span>`;
+            let corTotal = '#2b9348';
+            let botoesAcao = `
+                <button onclick="reimprimirCupomCliente(${o.id})" style="background:none; border:none; cursor:pointer; font-size:14px;">🖨️</button>
+                <button onclick="cancelarVendaAdmin(${o.id})" style="background:none; border:none; cursor:pointer; font-size:14px; margin-left:8px;">🗑️</button>
+            `;
+
+            // ATUALIZAÇÃO: Injeta visualmente o motivo do cancelamento na listagem
+            if (o.status === 'Cancelado') {
+                const dataCancelado = o.canceladoEm ? ` às ${formatarDataHora(o.canceladoEm).split(' ')[1]}` : '';
+                const motivoStr = o.motivoCancelamento ? `<br><span style="color:#c92a2a; font-size:11px;"><b>Motivo:</b> ${o.motivoCancelamento}</span>` : '';
+                statusBadge = `<span style="font-size:11px; font-weight:bold; color:#dc3545;">⚠️ ESTORNADO POR: ${o.canceladoPor || 'Gerente'}${dataCancelado}</span>${motivoStr}`;
+                corTotal = '#868e96';
+                botoesAcao = `<button onclick="reimprimirCupomCliente(${o.id})" style="background:none; border:none; cursor:pointer; font-size:14px;">🖨️</button>`;
+            }
+
             div.innerHTML = `
                 <div>
-                    <strong style="font-size: 15px; color: #343a40;">${p.name}</strong>
-                    <span class="badge-cat">${p.category || 'Geral'}</span>
-                    <div style="font-size: 13px; color: #2b9348; font-weight: bold; margin-top: 4px;">R$ ${p.price.toFixed(2)}</div>
+                    <strong>Pedido #${o.id} ${lblEntrega} (${o.formaPagamento}) - ${statusBadge}</strong><br>
+                    <small style="color:#666;">${o.itens.map(i => i.name).join(', ')}</small>
                 </div>
-                <div>
-                    <button onclick="editarProduto(${p.id}, '${p.name}', ${p.price})" style="background:#ffc107; color:#000; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; margin-right:5px;">✏️ Editar</button>
-                    <button onclick="excluirProduto(${p.id})" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🗑️ Excluir</button>
+                <div style="text-align:right;">
+                    <strong style="color:${corTotal}; display:block;">R$ ${o.total.toFixed(2)}</strong>
+                    ${botoesAcao}
                 </div>
             `;
             lista.appendChild(div);
         });
-    } catch (error) {
-        console.error("Erro ao carregar admin:", error);
-        lista.innerHTML = `<div style="padding: 20px; text-align: center; color: #dc3545;">Erro ao conectar com o servidor para listar produtos.</div>`;
-    }
+    } catch (e) { console.error(e); }
 }
 
-// 2. FUNÇÕES DE ABERTURA E FECHAMENTO DE CAIXA
-function atualizarTelaCaixa() {
-    const statusBox = document.getElementById('status-caixa-box');
-    const areaAbertura = document.getElementById('area-abertura-caixa');
-    const areaAberto = document.getElementById('area-caixa-aberto');
-    
-    if (!statusBox || !areaAbertura || !areaAberto) return;
+async function reimprimirCupomCliente(id) {
+    try {
+        const res = await fetch('http://localhost:3000/api/orders');
+        const orders = await res.json();
+        const o = orders.find(order => order.id === id);
+        if (!o) return;
 
-    if (caixaAberto) {
-        statusBox.className = 'caixa-status-box caixa-aberto';
-        statusBox.innerHTML = '🟢 CAIXA ABERTO';
-        areaAbertura.style.display = 'none';
-        areaAberto.style.display = 'block';
+        const JANELAPRINT = window.open('', '_blank', 'width=350,height=600');
+        let itensHtml = '';
+        o.itens.forEach(i => { itensHtml += `<div style="margin-bottom:6px;"><strong>1x ${i.name}</strong><br><small style="color:#555;">${i.obs}</small><br>R$ ${i.price.toFixed(2)}</div>`; });
 
-        // Atualiza os valores na tela
-        document.getElementById('exibe-fundo-troco').innerText = `R$ ${fundoDeTroco.toFixed(2)}`;
-        document.getElementById('exibe-vendas-dia').innerText = `R$ ${totalVendasDia.toFixed(2)}`;
-        document.getElementById('exibe-total-caixa').innerText = `R$ ${(fundoDeTroco + totalVendasDia).toFixed(2)}`;
-    } else {
-        statusBox.className = 'caixa-status-box caixa-fechado';
-        statusBox.innerHTML = '🔴 CAIXA FECHADO';
-        areaAbertura.style.display = 'block';
-        areaAberto.style.display = 'none';
-    }
+        JANELAPRINT.document.write(`
+            <html><body style="font-family:monospace;width:280px;font-size:12px;margin:10px;">
+            <center><strong>MEU CANTINHO AÇAÍ</strong><br>COMPROVANTE DE PEDIDO<br>Pedido #${o.id} (${o.tipoPedido})<br>${new Date(o.data).toLocaleString('pt-BR')}</center><hr style="border-top:1px dashed #000;">
+            ${itensHtml}
+            <hr style="border-top:1px dashed #000;">
+            ${o.tipoPedido === 'Entrega' ? `Taxa Entrega: R$ ${o.taxaEntrega.toFixed(2)}<br>` : ''}
+            <strong>FORMA PAGTO: ${o.formaPagamento}</strong><br>
+            <strong>STATUS: ${(o.status || '').toUpperCase()} ${o.status === 'Cancelado' ? `por ${o.canceladoPor} em ${formatarDataHora(o.canceladoEm)}<br>MOTIVO: ${o.motivoCancelamento || 'Não informado'}` : ''}</strong><br>
+            <strong>VALOR TOTAL: R$ ${o.total.toFixed(2)}</strong>
+            <script>window.onload = function() { window.print(); }</script></body></html>
+        `);
+        JANELAPRINT.document.close();
+    } catch (e) { console.error(e); }
 }
 
-function abrirCaixa() {
-    const inputSaldo = document.getElementById('saldo-inicial');
-    const valor = parseFloat(inputSaldo.value) || 0;
-
-    fundoDeTroco = valor;
-    caixaAberto = true;
+// ATUALIZAÇÃO CRÍTICA: Captura obrigatória do motivo do cancelamento
+async function cancelarVendaAdmin(id) {
+    if (!confirm("⚠️ Tem certeza que deseja CANCELAR e estornar este pedido? Os valores contábeis serão corrigidos na hora.")) return;
     
-    // Salva na memória do navegador
-    localStorage.setItem('caixa_aberto', 'true');
-    localStorage.setItem('caixa_fundo', fundoDeTroco.toString());
-    
-    atualizarTelaCaixa();
-    alert(`🔓 Caixa aberto com sucesso! Fundo de troco: R$ ${fundoDeTroco.toFixed(2)}`);
-}
-
-function fecharCaixa() {
-    if (!confirm("Tem certeza que deseja fechar o caixa do dia? Certifique-se de ter conferido os valores da gaveta!")) {
-        return;
-    }
-
-    const totalFinal = fundoDeTroco + totalVendasDia;
-    
-    // Alerta de resumo antes de fechar
-    alert(`🔒 FECHAMENTO DE CAIXA CONCLUÍDO!\n\n💵 Fundo de Troco: R$ ${fundoDeTroco.toFixed(2)}\n🛒 Vendas do Dia: R$ ${totalVendasDia.toFixed(2)}\n💰 Total em Gaveta Esperado: R$ ${totalFinal.toFixed(2)}`);
-
-    // Reseta o caixa
-    caixaAberto = false;
-    fundoDeTroco = 0;
-    
-    // Opção: Pode zerar as vendas do dia ao fechar o caixa ou manter
-    // totalVendasDia = 0; 
-    
-    localStorage.setItem('caixa_aberto', 'false');
-    localStorage.setItem('caixa_fundo', '0');
-    
-    atualizarTelaCaixa();
-}
-
-// 3. RELATÓRIO DE FECHAMENTO PARA IMPRESSÃO
-function imprimirRelatorioCaixa() {
-    const janelaPrint = window.open('', '_blank', 'width=350,height=600');
-    const dataHora = new Date().toLocaleString('pt-BR');
-    const totalGaveta = fundoDeTroco + totalVendasDia;
-    
-    const html = `
-    <html>
-    <head>
-        <title>Relatório de Caixa - Meu Cantinho Açaí</title>
-        <style>
-            body { font-family: 'Courier New', Courier, monospace; font-size: 12px; margin: 0; padding: 15px; width: 280px; color: #000; }
-            .header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 8px; }
-            .title { font-size: 15px; font-weight: bold; }
-            .item { display: flex; justify-content: space-between; margin: 6px 0; }
-            .total-section { border-top: 1px dashed #000; margin-top: 12px; padding-top: 8px; font-weight: bold; font-size: 14px; }
-            .footer { text-align: center; margin-top: 20px; font-size: 11px; border-top: 1px dashed #000; padding-top: 10px; }
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <div class="title">MEU CANTINHO AÇAÍ</div>
-            <div>RELATÓRIO DE GESTÃO DE CAIXA</div>
-            <div style="font-size: 10px; margin-top: 4px;">Emissão: ${dataHora}</div>
-        </div>
-        <div>
-            <div class="item">
-                <span>Status Atual:</span>
-                <span>${caixaAberto ? 'ABERTO' : 'FECHADO'}</span>
-            </div>
-            <div class="item">
-                <span>Fundo de Troco:</span>
-                <span>R$ ${fundoDeTroco.toFixed(2)}</span>
-            </div>
-            <div class="item">
-                <span>Vendas do Dia:</span>
-                <span>R$ ${totalVendasDia.toFixed(2)}</span>
-            </div>
-        </div>
-        <div class="total-section">
-            <div class="item">
-                <span>TOTAL GAVETA:</span>
-                <span>R$ ${totalGaveta.toFixed(2)}</span>
-            </div>
-        </div>
-        <div class="footer">
-            Assinatura do Responsável:<br><br>
-            ____________________________
-        </div>
-        <script>
-            window.onload = function() { window.print(); }
-        </script>
-    </body>
-    </html>
-    `;
-    
-    janelaPrint.document.write(html);
-    janelaPrint.document.close();
-}
-
-// 4. FUNÇÕES DE SUPORTE A PRODUTOS (ADICIONAR/EXCLUIR)
-async function adicionarProduto() {
-    const nome = document.getElementById('nome-produto')?.value;
-    const categoria = document.getElementById('categoria-produto')?.value;
-    const preco = parseFloat(document.getElementById('preco-produto')?.value);
-
-    if (!nome || !categoria || isNaN(preco)) {
-        alert("⚠️ Preencha todos os campos corretamente!");
+    const motivo = prompt("📝 Digite obrigatoriamente o motivo/observação deste cancelamento:");
+    if (motivo === null) return; // Se clicar em cancelar na caixa, aborta o processo
+    if (motivo.trim() === "") {
+        alert("❌ Erro: O motivo do cancelamento não pode ficar em branco!");
         return;
     }
 
     try {
-        const response = await fetch('http://localhost:3000/api/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: nome, category: categoria, price: preco })
+        const response = await fetch(`http://localhost:3000/api/orders/${id}`, { 
+            method: 'DELETE',
+            headers: {
+                'X-Usuario': sessionStorage.getItem('admin_usuario'),
+                'X-Motivo': motivo // Injeta o texto digitado no cabeçalho
+            }
         });
+        if (response.ok) { alert("✅ Venda cancelada e estornada!"); carregarHistoricoVendas(); atualizarTelaCaixa(); }
+    } catch (e) { console.error(e); }
+}
 
-        if (response.ok) {
-            alert("✅ Produto adicionado com sucesso!");
-            document.getElementById('nome-produto').value = '';
-            document.getElementById('preco-produto').value = '';
-            document.getElementById('categoria-produto').value = '';
-            carregarProdutosAdmin();
+async function carregarMovimentacoesCaixa() {
+    const listaAlvo = document.getElementById('extrato-caixa');
+    if (!listaAlvo) return;
+    try {
+        const res = await fetch('http://localhost:3000/api/caixa');
+        const movs = await res.json();
+        const hoje = new Date().toISOString().split('T')[0];
+        const movHoje = movs.filter(m => m.data.startsWith(hoje));
+
+        listaAlvo.innerHTML = '';
+        if (movHoje.length === 0) { listaAlvo.innerHTML = '<div style="padding:15px; color:#868e96;">Nenhuma sangria ou suprimento hoje.</div>'; return; }
+
+        movHoje.reverse().forEach(m => {
+            const div = document.createElement('div');
+            div.style = "padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;";
+            const cor = m.tipo === 'sangria' ? '#c92a2a' : '#2b8a3e';
+            
+            const dataMov = m.data ? ` em ${formatarDataHora(m.data)}` : '';
+            const socioStr = m.usuarioAtividade ? `<br><small style="color:#0077b6; font-weight:bold; font-size:11px;">Por: ${m.usuarioAtividade}${dataMov}</small>` : '';
+
+            div.innerHTML = `<div><strong>${m.tipo.toUpperCase()}</strong><br><small>${m.motivo}</small>${socioStr}</div><strong style="color:${cor};">${m.tipo === 'sangria' ? '-' : '+'} R$ ${m.valor.toFixed(2)}</strong>`;
+            listaAlvo.appendChild(div);
+        });
+    } catch (e) { console.error(e); }
+}
+
+async function atualizarTelaCaixa() {
+    const statusBox = document.getElementById('status-caixa-box');
+    const areaAbertura = document.getElementById('area-abertura-caixa');
+    const areaAberto = document.getElementById('area-caixa-aberto');
+    if (!statusBox) return;
+
+    try {
+        const resOrders = await fetch('http://localhost:3000/api/orders');
+        const orders = await resOrders.json();
+        const resCaixa = await fetch('http://localhost:3000/api/caixa');
+        const movs = await resCaixa.json();
+
+        const hoje = new Date().toISOString().split('T')[0];
+        const ordHoje = orders.filter(o => o.data.startsWith(hoje) && o.status !== 'Cancelado');
+        
+        const totalVendas = ordHoje.reduce((acc, cur) => acc + cur.total, 0);
+        const totalSuprimentos = movs.filter(m => m.data.startsWith(hoje) && m.tipo === 'suprimento').reduce((acc, cur) => acc + cur.valor, 0);
+        const totalSangrias = movs.filter(m => m.data.startsWith(hoje) && m.tipo === 'sangria').reduce((acc, cur) => acc + cur.valor, 0);
+
+        const vendasDinheiro = ordHoje.filter(o => o.formaPagamento === 'Dinheiro').reduce((acc, cur) => acc + cur.total, 0);
+        const vendasPIX = ordHoje.filter(o => o.formaPagamento === 'PIX').reduce((acc, cur) => acc + cur.total, 0);
+        const vendasCartao = ordHoje.filter(o => o.formaPagamento === 'Cartão').reduce((acc, cur) => acc + cur.total, 0);
+        const totalEntrega = ordHoje.reduce((acc, cur) => acc + (cur.taxaEntrega || 0), 0);
+
+        if (caixaAberto) {
+            statusBox.className = 'caixa-status-box caixa-aberto'; statusBox.innerHTML = '🟢 CAIXA ABERTO';
+            areaAbertura.style.display = 'none'; areaAberto.style.display = 'block';
+
+            let liquidoGaveta = fundoDeTroco + vendasDinheiro + totalSuprimentos - totalSangrias;
+            
+            document.getElementById('exibe-fundo-troco').innerText = `R$ ${fundoDeTroco.toFixed(2)}`;
+            document.getElementById('exibe-vendas-dia').innerText = `R$ ${totalVendas.toFixed(2)}`;
+            
+            document.getElementById('exibe-vendas-dinheiro').innerText = `R$ ${vendasDinheiro.toFixed(2)}`;
+            document.getElementById('exibe-vendas-pix').innerText = `R$ ${vendasPIX.toFixed(2)}`;
+            document.getElementById('exibe-vendas-cartao').innerText = `R$ ${vendasCartao.toFixed(2)}`;
+            document.getElementById('exibe-vendas-entrega').innerText = `R$ ${totalEntrega.toFixed(2)}`;
+            
+            document.getElementById('exibe-total-caixa').innerText = `R$ ${liquidoGaveta.toFixed(2)}`;
         } else {
-            alert("Erro ao adicionar no servidor.");
+            statusBox.className = 'caixa-status-box caixa-fechado'; statusBox.innerHTML = '🔴 CAIXA FECHADO';
+            areaAbertura.style.display = 'block'; areaAberto.style.display = 'none';
         }
-    } catch (error) {
-        console.error("Erro:", error);
-        alert("Erro de conexão com o servidor.");
-    }
+    } catch (e) { console.error(e); }
+}
+
+function abrirCaixa() {
+    fundoDeTroco = parseFloat(document.getElementById('saldo-inicial').value) || 0;
+    caixaAberto = true;
+    localStorage.setItem('caixa_aberto', 'true');
+    localStorage.setItem('caixa_fundo', fundoDeTroco.toString());
+    atualizarTelaCaixa();
+}
+
+function fecharCaixa() {
+    if (!confirm("Fechar caixa?")) return;
+    caixaAberto = false; fundoDeTroco = 0;
+    localStorage.setItem('caixa_aberto', 'false');
+    localStorage.setItem('caixa_fundo', '0');
+    atualizarTelaCaixa();
+}
+
+async function adicionarProduto() {
+    const name = document.getElementById('nome-produto')?.value;
+    const category = document.getElementById('categoria-produto')?.value;
+    const price = parseFloat(document.getElementById('preco-produto')?.value);
+    if (!name || !category || isNaN(price)) return;
+    
+    await fetch('http://localhost:3000/api/products', { 
+        method: 'POST', 
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-Usuario': sessionStorage.getItem('admin_usuario')
+        }, 
+        body: JSON.stringify({ name, category, price }) 
+    });
+    
+    document.getElementById('nome-produto').value = '';
+    document.getElementById('preco-produto').value = '';
+    carregarProdutosAdmin();
 }
 
 async function excluirProduto(id) {
-    if (confirm("⚠️ Tem certeza que deseja excluir este item do cardápio?")) {
-        try {
-            const response = await fetch(`http://localhost:3000/api/products/${id}`, { method: 'DELETE' });
-            if (response.ok) {
-                carregarProdutosAdmin();
-            } else {
-                alert("Não foi possível remover o item do servidor.");
-            }
-        } catch (error) {
-            console.error("Erro:", error);
-            alert("Erro ao conectar com o servidor para excluir.");
-        }
-    }
+    if (confirm("Excluir item?")) { await fetch(`http://localhost:3000/api/products/${id}`, { method: 'DELETE' }); carregarProdutosAdmin(); }
 }
 
-function editarProduto(id, nomeAtual, precoAtual) {
-    const novoNome = prompt("Editar Nome do Produto:", nomeAtual);
-    if (novoNome === null) return;
+function editarProduto(id, n, p) {
+    const nn = prompt("Nome:", n); const np = parseFloat(prompt("Preço:", p));
+    if (!nn || isNaN(np)) return;
     
-    const novoPrecoStr = prompt("Editar Preço (R$):", precoAtual.toFixed(2));
-    if (novoPrecoStr === null) return;
-    
-    const novoPreco = parseFloat(novoPrecoStr.replace(',', '.'));
-    if (isNaN(novoPreco)) {
-        alert("Preço inválido!");
-        return;
-    }
-
-    // Exemplo de atualização no backend (Requer rota PUT no seu servidor)
-    fetch(`http://localhost:3000/api/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: novoNome, price: novoPreco })
-    }).then(res => {
-        if(res.ok) {
-            alert("✅ Produto atualizado!");
-            carregarProdutosAdmin();
-        } else {
-            alert("Não foi possível atualizar (verifique se sua API suporta edição PUT).");
-        }
-    }).catch(err => console.error(err));
+    fetch(`http://localhost:3000/api/products/${id}`, { 
+        method: 'PUT', 
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-Usuario': sessionStorage.getItem('admin_usuario')
+        }, 
+        body: JSON.stringify({ name: nn, price: np }) 
+    }).then(() => carregarProdutosAdmin());
 }

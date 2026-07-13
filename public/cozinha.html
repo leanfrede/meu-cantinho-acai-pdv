@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel da Cozinha - Meu Cantinho Açaí</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background-color: #121214; color: #e1e1e6; margin: 0; font-family: sans-serif; }
+        .cozinha-header { background-color: #4a0072; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .cozinha-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 20px; }
+        .card-pedido-cozinha { background: #202024; border: 2px solid #29292e; border-radius: 10px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: space-between; }
+        .pedido-topo { display: flex; justify-content: space-between; border-bottom: 1px dashed #323238; padding-bottom: 8px; margin-bottom: 12px; }
+        .pedido-badge-entrega { background: #0077b6; color: white; font-size: 12px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .pedido-badge-balcao { background: #2b9348; color: white; font-size: 12px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .item-linha-cozinha { margin-bottom: 12px; border-bottom: 1px solid #29292e; padding-bottom: 8px; }
+        .item-linha-cozinha strong { color: #fff; font-size: 16px; }
+        .item-linha-cozinha p { margin: 4px 0 0 0; color: #ffc107; font-size: 14px; font-style: italic; }
+        .btn-pronto { width: 100%; background: #2b9348; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 15px; }
+        .btn-pronto:hover { background: #217135; }
+    </style>
+</head>
+<body>
+
+    <header class="cozinha-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 26px;">🥣</span>
+            <h1 style="margin: 0; font-size: 22px;">Painel de Produção da Cozinha</h1>
+        </div>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <span id="cozinha-contador" style="background: #29292e; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 14px;">0 Pedidos na Fila</span>
+            <a href="index.html" style="color: #fff; text-decoration: none; font-size: 13px; border: 1px solid #fff; padding: 5px 12px; border-radius: 4px;">Sair do Monitor</a>
+        </div>
+    </header>
+
+    <div id="panel-cozinha" class="cozinha-grid">
+        <!-- Injetado automaticamente pelo JS -->
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

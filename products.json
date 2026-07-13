@@ -1,0 +1,237 @@
+[
+  {
+    "id": 1,
+    "name": "Açaí Copo 200ml ",
+    "category": "Açaí",
+    "price": 10,
+    "available": true,
+    "usuarioAtividade": "Sócio A",
+    "dataAtividade": "2026-07-13T03:27:10.489Z"
+  },
+  {
+    "id": 3,
+    "name": "Açaí Copo 300ml",
+    "category": "Açaí",
+    "price": 16,
+    "available": true,
+    "usuarioAtividade": "Sócio A",
+    "dataAtividade": "2026-07-13T03:27:22.432Z"
+  },
+  {
+    "id": 4,
+    "name": "Açaí Copo 500ml",
+    "category": "Açaí",
+    "price": 24
+  },
+  {
+    "id": 5,
+    "name": "Açaí Copo 700ml",
+    "category": "Açaí",
+    "price": 34
+  },
+  {
+    "id": 6,
+    "name": "Açaí Tradicional",
+    "category": "Cremes",
+    "price": 0,
+    "available": true
+  },
+  {
+    "id": 7,
+    "name": "Creme de Morango",
+    "category": "Cremes",
+    "price": 0
+  },
+  {
+    "id": 8,
+    "name": "Creme de ovomaltine",
+    "category": "Cremes",
+    "price": 0
+  },
+  {
+    "id": 9,
+    "name": "Creme de cupuaçu",
+    "category": "Cremes",
+    "price": 0
+  },
+  {
+    "id": 10,
+    "name": "Creme de óreo",
+    "category": "Cremes",
+    "price": 0
+  },
+  {
+    "id": 11,
+    "name": "Creme de ninho",
+    "category": "Cremes",
+    "price": 0
+  },
+  {
+    "id": 12,
+    "name": "Leite Condensado",
+    "category": "Coberturas",
+    "price": 0
+  },
+  {
+    "id": 13,
+    "name": "Mel",
+    "category": "Coberturas",
+    "price": 0
+  },
+  {
+    "id": 14,
+    "name": "Calda de Chocolate",
+    "category": "Coberturas",
+    "price": 0
+  },
+  {
+    "id": 15,
+    "name": "Morango",
+    "category": "Coberturas",
+    "price": 0
+  },
+  {
+    "id": 16,
+    "name": "Cobertura Fini Dentaduras",
+    "category": "Coberturas",
+    "price": 0
+  },
+  {
+    "id": 17,
+    "name": "Cobertura Fini Bananas",
+    "category": "Coberturas",
+    "price": 0
+  },
+  {
+    "id": 18,
+    "name": "Granola",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 19,
+    "name": "Amendoim",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 20,
+    "name": "Gergelim torrado",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 21,
+    "name": "Castanha de Caju",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 22,
+    "name": "Flocos de Coco",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 23,
+    "name": "Leite em Pó",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 24,
+    "name": "Farinha Láctea",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 25,
+    "name": "Chocoball",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 26,
+    "name": "Granulado Colorido",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 27,
+    "name": "Confete",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 28,
+    "name": "Ovomaltine",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 29,
+    "name": "Gotas de Chocolate",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 30,
+    "name": "Doce de Leite",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 31,
+    "name": "Tubete",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 32,
+    "name": "Paçoquinha",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 33,
+    "name": "Jujuba",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 34,
+    "name": "Marshmallow ",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 35,
+    "name": "Fini Cobrinha Azedinha",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 36,
+    "name": "Nutela ",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 37,
+    "name": "Xarope de Guaraná",
+    "category": "Adicionais",
+    "price": 0
+  },
+  {
+    "id": 38,
+    "name": "Tapioca de Frango com Catupiry",
+    "category": "Tapiocas",
+    "price": 14.5
+  },
+  {
+    "id": 39,
+    "name": "Tapioca Carne de Sol",
+    "category": "Tapiocas",
+    "price": 15.49
+  }
+]

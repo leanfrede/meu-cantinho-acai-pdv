@@ -1,132 +1,155 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const cors = require('cors');
+const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const port = 3000;
+const PORT = 3000;
 
-// Configuração para o servidor entender os dados do carrinho
+app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// LIGAÇÃO À BASE DE DADOS (Cria um ficheiro novo automaticamente)
-const db = new sqlite3.Database('./pdv.sqlite', (err) => {
-    if (err) {
-        console.error("❌ Erro ao ligar à base de dados:", err.message);
-    } else {
-        console.log("✅ Ligado à base de dados (pdv.sqlite).");
-        
-        // Cria a tabela de PRODUTOS
-        db.run(`CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            price REAL,
-            category TEXT
-        )`);
+const FILE_PRODUCTS = path.join(__dirname, 'products.json');
+const FILE_ORDERS = path.join(__dirname, 'orders.json');
+const FILE_CAIXA = path.join(__dirname, 'caixa.json');
 
-        // Cria a tabela de VENDAS (agora com a coluna payment_method correta!)
-        db.run(`CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            items TEXT,
-            total REAL,
-            payment_method TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
+function inicializarArquivos() {
+    if (!fs.existsSync(FILE_PRODUCTS)) fs.writeFileSync(FILE_PRODUCTS, JSON.stringify([]));
+    if (!fs.existsSync(FILE_ORDERS)) fs.writeFileSync(FILE_ORDERS, JSON.stringify([]));
+    if (!fs.existsSync(FILE_CAIXA)) fs.writeFileSync(FILE_CAIXA, JSON.stringify([]));
+}
+inicializarArquivos();
 
-        // Cria a tabela de FECHAMENTOS DE CAIXA
-        db.run(`CREATE TABLE IF NOT EXISTS fechamentos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            data TEXT,
-            valorInicial REAL,
-            vendasDoDia REAL,
-            totalEsperado REAL,
-            totalGaveta REAL
-        )`);
-    }
-});
-
-// ==========================================
-// ROTAS DO CARDÁPIO (PRODUTOS)
-// ==========================================
+/* --- ROTAS DE PRODUTOS --- */
 app.get('/api/products', (req, res) => {
-    db.all("SELECT * FROM products", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+    const data = fs.readFileSync(FILE_PRODUCTS, 'utf-8');
+    res.json(JSON.parse(data));
 });
 
 app.post('/api/products', (req, res) => {
-    const { name, price, category } = req.body;
-    db.run("INSERT INTO products (name, price, category) VALUES (?, ?, ?)", [name, price, category], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: this.lastID });
-    });
+    const { name, category, price } = req.body;
+    const usuario = req.headers['x-usuario'] || 'Sistema';
+    const data = fs.readFileSync(FILE_PRODUCTS, 'utf-8');
+    const products = JSON.parse(data);
+    
+    const novoProduto = {
+        id: products.length > 0 ? products[products.length - 1].id + 1 : 1,
+        name, category, price: parseFloat(price), available: true,
+        usuarioAtividade: usuario,
+        dataAtividade: new Date().toISOString()
+    };
+    products.push(novoProduto);
+    fs.writeFileSync(FILE_PRODUCTS, JSON.stringify(products, null, 2));
+    res.status(201).json(novoProduto);
 });
 
 app.put('/api/products/:id', (req, res) => {
-    const { name, price, category } = req.body;
-    db.run("UPDATE products SET name = ?, price = ?, category = ? WHERE id = ?", [name, price, category, req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: "Produto atualizado com sucesso!" });
-    });
+    const id = parseInt(req.params.id);
+    const { name, price, available } = req.body;
+    const usuario = req.headers['x-usuario'] || 'Sistema';
+    const data = fs.readFileSync(FILE_PRODUCTS, 'utf-8');
+    const products = JSON.parse(data);
+    const index = products.findIndex(p => p.id === id);
+    if (index === -1) return res.status(404).json({ error: "Não encontrado" });
+    
+    products[index].name = name || products[index].name;
+    products[index].price = price !== undefined ? parseFloat(price) : products[index].price;
+    if (available !== undefined) products[index].available = available;
+    
+    products[index].usuarioAtividade = usuario;
+    products[index].dataAtividade = new Date().toISOString();
+    
+    fs.writeFileSync(FILE_PRODUCTS, JSON.stringify(products, null, 2));
+    res.json(products[index]);
 });
 
 app.delete('/api/products/:id', (req, res) => {
-    db.run("DELETE FROM products WHERE id = ?", req.params.id, function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: "Produto eliminado" });
-    });
+    const id = parseInt(req.params.id);
+    const data = fs.readFileSync(FILE_PRODUCTS, 'utf-8');
+    let products = JSON.parse(data);
+    products = products.filter(p => p.id !== id);
+    fs.writeFileSync(FILE_PRODUCTS, JSON.stringify(products, null, 2));
+    res.json({ success: true });
 });
 
-// ==========================================
-// ROTAS DE VENDAS E CARRINHO
-// ==========================================
+/* --- ROTAS DE VENDAS --- */
 app.get('/api/orders', (req, res) => {
-    db.all("SELECT * FROM orders ORDER BY id DESC", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+    const data = fs.readFileSync(FILE_ORDERS, 'utf-8');
+    res.json(JSON.parse(data));
 });
 
 app.post('/api/orders', (req, res) => {
-    console.log("🛒 Recebendo nova venda..."); 
+    const { itens, total, formaPagamento, valorRecebido, troco, tipoPedido, taxaEntrega, data } = req.body;
+    const fileData = fs.readFileSync(FILE_ORDERS, 'utf-8');
+    const orders = JSON.parse(fileData);
     
-    const { items, total, payment_method } = req.body;
+    const novaVenda = {
+        id: orders.length > 0 ? orders[orders.length - 1].id + 1 : 1,
+        itens, total: parseFloat(total), formaPagamento, valorRecebido, troco,
+        tipoPedido: tipoPedido || 'Balcão',
+        taxaEntrega: taxaEntrega ? parseFloat(taxaEntrega) : 0,
+        status: 'Pendente',
+        data: data || new Date().toISOString()
+    };
     
-    db.run("INSERT INTO orders (items, total, payment_method) VALUES (?, ?, ?)", [items, total, payment_method], function(err) {
-        if (err) {
-            console.error("❌ Erro grave ao guardar a venda:", err.message);
-            return res.status(500).json({ error: err.message });
-        }
-        console.log(`✅ Venda guardada com sucesso! ID da venda: ${this.lastID} | Total: R$ ${total}`);
-        res.json({ message: "Venda guardada", id: this.lastID });
-    });
+    orders.push(novaVenda);
+    fs.writeFileSync(FILE_ORDERS, JSON.stringify(orders, null, 2));
+    res.status(201).json(novaVenda);
 });
 
-// ==========================================
-// ROTAS DO FECHAMENTO DE CAIXA
-// ==========================================
-app.post('/abrir-caixa', (req, res) => {
-    res.json({ message: "Caixa aberto com sucesso!" });
+app.delete('/api/orders/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const usuario = req.headers['x-usuario'] || 'Sistema';
+    const motivo = req.headers['x-motivo'] || 'Não especificado'; // NOVO: Captura o motivo do cabeçalho
+    const data = fs.readFileSync(FILE_ORDERS, 'utf-8');
+    let orders = JSON.parse(data);
+    const index = orders.findIndex(o => o.id === id);
+    
+    if (index !== -1) {
+        orders[index].status = 'Cancelado';
+        orders[index].canceladoPor = usuario;
+        orders[index].canceladoEm = new Date().toISOString();
+        orders[index].motivoCancelamento = motivo; // NOVO: Salva o motivo no histórico
+        fs.writeFileSync(FILE_ORDERS, JSON.stringify(orders, null, 2));
+    }
+    res.json({ success: true });
 });
 
-app.post('/api/fechamento', (req, res) => {
-    const { data, valorInicial, vendasDoDia, totalEsperado, totalGaveta } = req.body;
-    db.run("INSERT INTO fechamentos (data, valorInicial, vendasDoDia, totalEsperado, totalGaveta) VALUES (?, ?, ?, ?, ?)", 
-    [data, valorInicial, vendasDoDia, totalEsperado, totalGaveta], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: "Fechamento registado" });
-    });
+app.put('/api/orders/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const { status } = req.body;
+    const data = fs.readFileSync(FILE_ORDERS, 'utf-8');
+    const orders = JSON.parse(data);
+    const index = orders.findIndex(o => o.id === id);
+    if (index === -1) return res.status(404).json({ error: "Não encontrado" });
+    orders[index].status = status || orders[index].status;
+    fs.writeFileSync(FILE_ORDERS, JSON.stringify(orders, null, 2));
+    res.json(orders[index]);
 });
 
-app.get('/api/fechamentos', (req, res) => {
-    db.all("SELECT * FROM fechamentos", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+/* --- ROTAS DE CAIXA --- */
+app.get('/api/caixa', (req, res) => {
+    const data = fs.readFileSync(FILE_CAIXA, 'utf-8');
+    res.json(JSON.parse(data));
 });
 
-// LIGA O SERVIDOR
-app.listen(port, () => {
-    console.log(`🚀 Sistema do Cantinho do Açaí a correr em http://localhost:${port}`);
+app.post('/api/caixa', (req, res) => {
+    const { tipo, valor, motivo, data } = req.body;
+    const usuario = req.headers['x-usuario'] || 'Sistema';
+    const fileData = fs.readFileSync(FILE_CAIXA, 'utf-8');
+    const movimentacoes = JSON.parse(fileData);
+    
+    const novaMovimentacao = {
+        id: movimentacoes.length > 0 ? movimentacoes[movimentacoes.length - 1].id + 1 : 1,
+        tipo, valor: parseFloat(valor), motivo, data: data || new Date().toISOString(),
+        usuarioAtividade: usuario
+    };
+    movimentacoes.push(novaMovimentacao);
+    fs.writeFileSync(FILE_CAIXA, JSON.stringify(movimentacoes, null, 2));
+    res.status(201).json(novaMovimentacao);
+});
+
+app.listen(PORT, () => {
+    console.log("🚀 Servidor auditado rodando em http://localhost:3000");
 });

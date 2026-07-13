@@ -3,29 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caixa - Meu Cantinho Açaí</title>
+    <title>Meu Cantinho Açaí - Frente de Caixa</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- CABEÇALHO -->
-    <header class="top-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #4a0072; color: white;">
-        <div style="display: flex; align-items: center; gap: 10px;">
+
+    <!-- CABEÇALHO ROXO -->
+    <header class="top-bar">
+        <div class="logo-area">
             <span style="font-size: 24px;">🔮</span>
-            <h1 style="font-size: 20px; margin: 0;">Meu Cantinho Açaí</h1>
-            <span style="background-color: #2b9348; color: white; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: bold;">PDV Online</span>
+            <h1>Meu Cantinho Açaí</h1>
+            <span class="badge-online">PDV Online</span>
         </div>
-        <a href="admin.html" style="background-color: rgba(255,255,255,0.15); color: white; text-decoration: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 5px;">
-            ⚙️ Painel de Controle
-        </a>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 12px; color: #ffc107; font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 4px;">⌨️ Atalhos: F2 = Pagar | ESC = Fechar</span>
+            <!-- NOVO BOTÃO DA COZINHA -->
+            <a href="cozinha.html" class="btn-admin" style="background: #0077b6;">🍳 Monitor da Cozinha</a>
+            <a href="admin.html" class="btn-admin">⚙️ Painel Administrativo</a>
+        </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <div class="main-container" style="display: grid; grid-template-columns: 1fr 400px; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto;">
+    <!-- LAYOUT PRINCIPAL EM 2 COLUNAS -->
+    <div class="main-container">
         
-        <!-- COLUNA DA ESQUERDA: CARDÁPIO -->
-        <div class="menu-section" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px;">
-            <!-- ABAS DE CATEGORIAS -->
-            <div class="tabs" style="display: flex; flex-wrap: wrap; gap: 10px;">
+        <!-- COLUNA ESQUERDA: CARDÁPIO (ABAS + PRODUTOS) -->
+        <div class="menu-section">
+            <div class="tabs">
                 <button class="tab-btn active" onclick="filtrarCategoria('Açaí')">🟣 Açaís</button>
                 <button class="tab-btn" onclick="filtrarCategoria('Cremes')">🍨 Cremes</button>
                 <button class="tab-btn" onclick="filtrarCategoria('Adicionais')">🍓 Adicionais</button>
@@ -34,58 +37,141 @@
                 <button class="tab-btn" onclick="filtrarCategoria('Bebidas')">🥤 Bebidas</button>
             </div>
 
-            <!-- GRADE DE PRODUTOS -->
             <div id="product-grid" class="product-grid">
-                <!-- Os produtos vão aparecer aqui automaticamente -->
+                <!-- Injetado pelo JavaScript -->
             </div>
         </div>
 
-        <!-- COLUNA DA DIREITA: CARRINHO -->
-        <div class="cart-section" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; height: calc(100vh - 110px); position: sticky; top: 80px;">
-            
-            <div>
-                <!-- TOPO DO CARRINHO -->
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dee2e6; padding-bottom: 15px; margin-bottom: 15px;">
-                    <h2 style="font-size: 18px; margin: 0; color: #343a40; display: flex; align-items: center; gap: 8px;">🛒 Pedido Atual</h2>
-                    <span id="itens-contagem" style="font-size: 13px; color: #868e96; font-weight: bold;">0 itens</span>
-                </div>
-
-                <!-- LISTA DE ITENS DO CARRINHO -->
-                <ul id="cart-items" class="cart-items" style="list-style: none; padding: 0; margin: 0; max-height: calc(100vh - 420px); overflow-y: auto;">
-                    <!-- Itens do carrinho aparecem aqui -->
-                </ul>
+        <!-- COLUNA DIREITA: CARRINHO -->
+        <div class="cart-section">
+            <div class="cart-header">
+                <h2>🛒 Pedido Atual</h2>
+                <span id="itens-contagem" class="itens-badge">0 itens</span>
             </div>
 
-            <!-- RODAPÉ DO CARRINHO -->
+            <div id="cart-items" class="cart-items-list">
+                <!-- Injetado pelo JavaScript -->
+            </div>
+
             <div class="cart-footer">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <span style="font-weight: bold; color: #495057;">🛵 Taxa de Entrega:</span>
-                    <div>
-                        <span>R$ </span>
-                        <input type="number" id="taxa-entrega" value="0.00" step="0.50" min="0" style="width: 80px; padding: 6px; text-align: right; border: 1px solid #ced4da; border-radius: 4px; font-weight: bold;" onchange="atualizarCarrinho()">
-                    </div>
-                </div>
-
-                <div class="total-area" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #2b2d42; border-top: 2px dashed #ced4da; padding-top: 15px;">
+                <div class="total-area">
                     <span>Total a Pagar:</span>
-                    <span id="cart-total-value" style="color: #2b2d42;">R$ 0.00</span>
+                    <span id="total-price">R$ 0.00</span>
                 </div>
 
-                <div style="text-align: center; margin-bottom: 10px; font-size: 11px; font-weight: bold; color: #495057; text-transform: uppercase; background: #e9ecef; padding: 6px; border-radius: 4px;">
-                    👇 Finalizar Pedido e Imprimir Comprovante:
-                </div>
-
-                <div class="payment-methods" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-                    <button class="pay-btn btn-dinheiro" onclick="finalizarVenda('Dinheiro')" style="background: #2b9348; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">💵 DINHEIRO</button>
-                    <button class="pay-btn btn-pix" onclick="finalizarVenda('PIX')" style="background: #0077b6; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">💠 PIX</button>
-                    <button class="pay-btn btn-cartao" onclick="finalizarVenda('Cartão')" style="background: #d4a373; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">💳 CARTÃO</button>
+                <button class="btn-finalizar" onclick="finalizarVenda()">💰 FINALIZAR VENDA (F2)</button>
+                
+                <div class="caixa-acoes-grid">
+                    <button onclick="registrarMovimentacao('sangria')" class="btn-caixa btn-sangria">🔴 Sangria (-)</button>
+                    <button onclick="registrarMovimentacao('suprimento')" class="btn-caixa btn-suprimento">🟢 Suprimento (+)</button>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- LIGAÇÃO COM O JAVASCRIPT -->
+    <!-- MODAL DE PERSONALIZAÇÃO (MONTADOR DE AÇAÍ REAL) -->
+    <div id="modal-produto" class="modal-overlay">
+        <div class="modal-box" style="max-width: 450px;">
+            <h2 id="modal-titulo">Personalizar Produto</h2>
+            <div id="modal-conteudo" style="max-height: 65vh; overflow-y: auto; padding-right: 5px;">
+                <label style="color: #4a0072; font-weight: bold; display: block; margin-bottom: 5px;">🍫 COBERTURAS (Escolha até 2):</label>
+                <div class="checkbox-group" style="margin-bottom: 15px;">
+                    <label><input type="checkbox" name="cobertura" value="Leite Condensado"> Leite Condensado</label>
+                    <label><input type="checkbox" name="cobertura" value="Mel"> Mel</label>
+                    <label><input type="checkbox" name="cobertura" value="Calda de Chocolate"> Calda de Chocolate</label>
+                    <label><input type="checkbox" name="cobertura" value="Calda de Morango"> Calda de Morango</label>
+                    <label><input type="checkbox" name="cobertura" value="Fini Dentaduras"> Fini Dentaduras</label>
+                    <label><input type="checkbox" name="cobertura" value="Fini Bananas"> Fini Bananas</label>
+                </div>
+                
+                <label style="color: #4a0072; font-weight: bold; display: block; margin-bottom: 5px;">🍓 ACOMPANHAMENTOS (Escolha até 5):</label>
+                <div class="checkbox-group" style="grid-template-columns: 1fr; gap: 6px;">
+                    <label><input type="checkbox" name="acompanhamento" value="Gergelim torrado"> Gergelim torrado</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Granola"> Granola</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Amendoim"> Amendoim</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Castanha de Caju"> Castanha de Caju</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Flocos de Coco"> Flocos de Coco</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Leite em Pó"> Leite em Pó</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Farinha Láctea"> Farinha Láctea</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Chocoball"> Chocoball</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Granulado Colorido"> Granulado Colorido</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Confete"> Confete</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Ovomaltine"> Ovomaltine</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Gotas de Chocolate"> Gotas de Chocolate</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Doce de Leite"> Doce de Leite</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Tubete"> Tubete</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Paçoquinha"> Paçoquinha</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Jujuba"> Jujuba</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Marshmallow"> Marshmallow</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Fini Cobrinha Azedinha"> Fini Cobrinha Azedinha</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Nutella"> Nutella</label>
+                    <label><input type="checkbox" name="acompanhamento" value="Xarope de Guaraná"> Xarope de Guaraná</label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancelar" onclick="fecharModal()">Cancelar (ESC)</button>
+                <button class="btn-modal-confirmar" onclick="confirmarAdicao()">Confirmar Receita</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE MEIO DE PAGAMENTO -->
+    <div id="modal-pagamento" class="modal-overlay">
+        <div class="modal-box" style="max-width: 360px;">
+            <h2>Fechar e Pagar</h2>
+            
+            <label style="font-weight:bold; display:block; margin-top:5px;">Tipo de Pedido:</label>
+            <select id="pedido-tipo" class="modal-select" onchange="alternarTipoPedido()" style="font-size:15px; font-weight:bold; height:38px; margin-bottom:12px;">
+                <option value="Balcão">🏪 Balcão / Retirada</option>
+                <option value="Entrega">🛵 Entrega (Motoboy)</option>
+            </select>
+
+            <div id="div-taxa-entrega" style="display:none; margin-bottom:12px;">
+                <label style="font-weight:bold; display:block;">Taxa de Entrega (R$):</label>
+                <input type="number" id="taxa-entrega" class="modal-select" placeholder="R$ 0.00" step="0.50" oninput="calcularTotalComEntrega()" style="height:35px; font-size:16px;">
+            </div>
+
+            <p style="font-size: 16px; margin-top:10px; border-top:1px dashed #ddd; padding-top:10px;">Total da Venda: <strong id="modal-pagamento-total" style="color:#4a0072; font-size: 20px;">R$ 0.00</strong></p>
+            
+            <label style="font-weight:bold; display:block; margin-top:15px;">Forma de Pagamento:</label>
+            <select id="pagamento-metodo" class="modal-select" onchange="alternarCampoTroco()" style="font-size:15px; font-weight:bold; height:40px; margin-bottom:15px;">
+                <option value="Dinheiro">💵 Dinheiro</option>
+                <option value="PIX">⚡ PIX</option>
+                <option value="Cartão">💳 Cartão (Crédito/Débito)</option>
+            </select>
+
+            <div id="div-calculo-troco">
+                <label style="font-weight:bold; display:block;">Valor Entregue pelo Cliente:</label>
+                <input type="number" id="pagamento-recebido" class="modal-select" placeholder="R$ 0.00" step="0.01" oninput="calcularTroco()" style="height:35px; font-size:16px;">
+                <p style="font-size: 16px; margin-top:10px;">Troco a Devolver: <strong id="pagamento-troco" style="color:#2b8a3e; font-size:18px;">R$ 0.00</strong></p>
+            </div>
+
+            <div class="modal-actions" style="margin-top:25px;">
+                <button class="btn-modal-cancelar" onclick="fecharModalPagamento()">Voltar (ESC)</button>
+                <button class="btn-modal-confirmar" style="background:#2b9348;" onclick="confirmarVendaComPagamento()">✔ Concluir Venda</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE SUCESSO E COMPROVANTE VIA WHATSAPP -->
+    <div id="modal-sucesso" class="modal-overlay">
+        <div class="modal-box" style="max-width: 380px; text-align: center;">
+            <span style="font-size: 50px;">🎉</span>
+            <h2 style="color: #2b9348; margin-top: 10px;">Venda Concluída!</h2>
+            <p style="font-size: 14px; color: #555;">O pedido foi salvo com sucesso na nuvem e no banco local.</p>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px dashed #ced4da; text-align: left;">
+                <label style="font-weight: bold; font-size: 13px; display: block; margin-bottom: 5px;">📲 Enviar Comprovante por WhatsApp?</label>
+                <input type="text" id="whatsapp-cliente" class="modal-select" placeholder="DDD + Número (Ex: 11999998888)" style="height: 38px; font-size: 14px; margin-top: 0;">
+                <button onclick="enviarCupomWhatsApp()" style="background: #25d366; color: white; border: none; width: 100%; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    💬 Enviar Notinha no WhatsApp
+                </button>
+            </div>
+
+            <button class="btn-modal-cancelar" onclick="fecharModalSucesso()" style="width: 100%; background: #4a0072; color: white;">⚡ Próximo Atendimento (ESC)</button>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

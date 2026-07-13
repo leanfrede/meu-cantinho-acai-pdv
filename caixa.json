@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "tipo": "sangria",
+    "valor": 10,
+    "motivo": "Gasolina do motoboy arretado.",
+    "data": "2026-07-13T01:42:03.046Z"
+  },
+  {
+    "id": 2,
+    "tipo": "suprimento",
+    "valor": null,
+    "motivo": "50",
+    "data": "2026-07-13T01:47:46.132Z"
+  },
+  {
+    "id": 3,
+    "tipo": "suprimento",
+    "valor": null,
+    "motivo": "100",
+    "data": "2026-07-13T01:48:39.311Z"
+  },
+  {
+    "id": 4,
+    "tipo": "suprimento",
+    "valor": 100,
+    "motivo": "Agua",
+    "data": "2026-07-13T01:53:26.237Z"
+  },
+  {
+    "id": 5,
+    "tipo": "suprimento",
+    "valor": 30,
+    "motivo": "Gasolina",
+    "data": "2026-07-13T01:53:52.054Z"
+  }
+]

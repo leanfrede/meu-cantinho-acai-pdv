@@ -6,264 +6,152 @@
     <title>Painel Administrativo - Meu Cantinho Açaí</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* ESTILOS EXCLUSIVOS DO PAINEL ADMIN (ESPELHANDO O CAIXA) */
-        body {
-            background-color: #f8f9fa;
-            margin: 0;
-            padding-bottom: 40px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #343a40;
-        }
-        
-        /* Barra de Topo Idêntica à de Vendas */
-        .admin-top-bar {
-            background-color: #4a0072;
-            color: white;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        /* Grid Principal: Esquerda (Cardápio) | Direita (Caixa/Gestão) */
-        .admin-layout {
-            display: grid;
-            grid-template-columns: 1fr 420px;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .btn-voltar {
-            color: #ffffff;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 13px;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 8px 15px;
-            border-radius: 6px;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .btn-voltar:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
-        
-        /* Cartões Brancos idênticos aos da Frente de Caixa */
-        .admin-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-        
-        .admin-card h2 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #343a40;
-            font-size: 18px;
-            border-bottom: 1px solid #dee2e6;
-            padding-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        /* Formulário de Produtos */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 2fr 1.5fr 1fr auto;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .form-input {
-            padding: 10px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 14px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: #4a0072;
-        }
-        
-        .btn-add {
-            background-color: #0077b6;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-add:hover { background-color: #005f8a; }
-
-        /* Lista de Produtos Organizada */
-        .item-produto-admin {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid #f1f3f5;
-            transition: background 0.2s;
-        }
-        .item-produto-admin:hover { background-color: #f8f9fa; }
-        
-        .badge-cat {
-            background: #eeb4ff;
-            color: #4a0072;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 3px 8px;
-            border-radius: 12px;
-            margin-left: 8px;
-        }
-
-        /* Estilos da Área do Caixa (Coluna Direita) */
-        .caixa-status-box {
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 15px;
-            font-weight: bold;
-            font-size: 16px;
-        }
+        body { background-color: #f8f9fa; margin: 0; padding-bottom: 40px; font-family: sans-serif; color: #343a40; }
+        .admin-top-bar { background-color: #4a0072; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .admin-layout { display: grid; grid-template-columns: 1fr 420px; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+        .btn-voltar { color: #ffffff; text-decoration: none; font-weight: bold; font-size: 13px; background: rgba(255, 255, 255, 0.15); padding: 8px 15px; border-radius: 6px; border: none; cursor: pointer; }
+        .admin-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .admin-card h2 { margin-top: 0; margin-bottom: 15px; color: #343a40; font-size: 18px; border-bottom: 1px solid #dee2e6; padding-bottom: 12px; }
+        .form-grid { display: grid; grid-template-columns: 2fr 1.5fr 1fr auto; gap: 10px; align-items: center; }
+        .form-input { padding: 10px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box; }
+        .btn-add { background-color: #0077b6; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .caixa-status-box { padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; font-weight: bold; font-size: 16px; }
         .caixa-aberto { background-color: #d8f3dc; color: #1b4332; border: 1px solid #b7e4c7; }
         .caixa-fechado { background-color: #ffe5d9; color: #9d0208; border: 1px solid #ffcad4; }
-        
-        .btn-caixa {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: opacity 0.2s;
-        }
-        .btn-caixa:hover { opacity: 0.9; }
+        .btn-caixa { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
         .btn-abrir { background-color: #2b9348; color: white; }
         .btn-fechar { background-color: #d62828; color: white; }
         .btn-relatorio { background-color: #4a0072; color: white; margin-top: 15px; }
+        .log-container { max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 6px; background: #fff; }
+        .faturamento-item { display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 4px; padding-left: 10px; }
+        
+        .login-screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #4a0072; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-card { background: white; padding: 30px; border-radius: 12px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .pin-display { font-size: 28px; letter-spacing: 10px; padding: 10px; border: 2px solid #ddd; border-radius: 6px; margin-bottom: 20px; background: #f8f9fa; font-family: monospace; height: 35px; display: flex; justify-content: center; align-items: center; }
+        .pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .btn-pin { background: #f1f3f5; border: 1px solid #e2e8f0; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; color: #4a0072; transition: 0.1s; }
+        .btn-pin:hover { background: #e2e8f0; }
+        .btn-pin-clear { background: #ffe5d9; color: #d62828; }
+        .btn-pin-clear:hover { background: #ffccd5; }
 
-        /* Responsividade para telas menores */
-        @media (max-width: 992px) {
-            .admin-layout { grid-template-columns: 1fr; }
-            .form-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 992px) { .admin-layout { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-    <!-- CABEÇALHO ROXO IDÊNTICO AO DE VENDAS -->
-    <header class="admin-top-bar">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 24px;">⚙️</span>
-            <h1 style="font-size: 20px; margin: 0;">Painel Administrativo - Meu Cantinho Açaí</h1>
-            <span style="background-color: #ffc107; color: #000; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: bold;">Gestão</span>
-        </div>
-        <a href="index.html" class="btn-voltar">🛒 Voltar para o Caixa</a>
-    </header>
-
-    <!-- LAYOUT EM 2 COLUNAS (ESPELHANDO A TELA DE VENDAS) -->
-    <div class="admin-layout">
-        
-        <!-- COLUNA DA ESQUERDA: GERENCIAMENTO DE CARDÁPIO -->
-        <div class="col-esquerda">
-            <!-- Cadastrar Novo Produto -->
-            <div class="admin-card">
-                <h2>🍔 Adicionar Novo Produto ao Cardápio</h2>
-                <div class="form-grid">
-                    <input type="text" id="nome-produto" class="form-input" placeholder="Nome do Produto">
-                    
-                    <select id="categoria-produto" class="form-input">
-                        <option value="">Categoria...</option>
-                        <option value="Açaí">🟣 Açaí</option>
-                        <option value="Cremes">🍨 Cremes</option>
-                        <option value="Adicionais">🍓 Adicionais</option>
-                        <option value="Coberturas">🍫 Coberturas</option>
-                        <option value="Tapiocas">🥞 Tapiocas</option>
-                        <option value="Bebidas">🥤 Bebidas</option>
-                    </select>
-                    
-                    <input type="number" id="preco-produto" class="form-input" placeholder="Preço (R$)" step="0.50" min="0">
-                    
-                    <button id="btn-adicionar" onclick="adicionarProduto()" class="btn-add">+ Adicionar</button>
-                </div>
-            </div>
-
-            <!-- Lista de Produtos Cadastrados -->
-            <div class="admin-card">
-                <h2>📋 Produtos Cadastrados no Sistema</h2>
-                <div id="lista-produtos" style="max-height: 500px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 6px;">
-                    <!-- A lista será gerada automaticamente aqui via Javascript -->
-                </div>
+    <!-- BLOQUEIO DE SEGURANÇA POR PIN -->
+    <div id="tela-bloqueio-admin" class="login-screen-overlay">
+        <div class="login-card">
+            <span style="font-size: 40px;">🔒</span>
+            <h2 style="margin: 10px 0 5px 0; color: #4a0072;">Identificação de Sócio</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Digite seu PIN individual para acessar.</p>
+            
+            <div id="pin-visor" class="pin-display"></div>
+            
+            <div class="pin-grid">
+                <button class="btn-pin" onclick="digitarPin('1')">1</button>
+                <button class="btn-pin" onclick="digitarPin('2')">2</button>
+                <button class="btn-pin" onclick="digitarPin('3')">3</button>
+                <button class="btn-pin" onclick="digitarPin('4')">4</button>
+                <button class="btn-pin" onclick="digitarPin('5')">5</button>
+                <button class="btn-pin" onclick="digitarPin('6')">6</button>
+                <button class="btn-pin" onclick="digitarPin('7')">7</button>
+                <button class="btn-pin" onclick="digitarPin('8')">8</button>
+                <button class="btn-pin" onclick="digitarPin('9')">9</button>
+                <button class="btn-pin btn-pin-clear" onclick="limparPin()">❌</button>
+                <button class="btn-pin" onclick="digitarPin('0')">0</button>
+                <button class="btn-pin" onclick="sairParaCaixa()" style="background:#dee2e6; color:#333; font-size:14px;">🛒</button>
             </div>
         </div>
-
-        <!-- COLUNA DA DIREITA: ABERTURA E FECHAMENTO DE CAIXA (ESTILO CARRINHO) -->
-        <div class="col-direita" style="position: sticky; top: 20px;">
-            <div class="admin-card">
-                <h2>💰 Controle de Caixa</h2>
-                
-                <!-- Status Visual do Caixa -->
-                <div id="status-caixa-box" class="caixa-status-box caixa-fechado">
-                    🔴 CAIXA FECHADO
-                </div>
-
-                <!-- Formulário de Abertura -->
-                <div id="area-abertura-caixa">
-                    <label style="font-size: 13px; font-weight: bold; color: #495057;">💵 Saldo Inicial (Fundo de Troco):</label>
-                    <div style="margin-top: 5px;">
-                        <input type="number" id="saldo-inicial" class="form-input" placeholder="Ex: 100.00" step="1.00" min="0" value="0.00">
-                    </div>
-                    <button class="btn-caixa btn-abrir" onclick="abrirCaixa()">🔓 ABRIR CAIXA AGORA</button>
-                </div>
-
-                <!-- Painel com Caixas Aberto (Oculto até abrir o caixa) -->
-                <div id="area-caixa-aberto" style="display: none; border-top: 1px dashed #dee2e6; padding-top: 15px; margin-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-                        <span>Fundo de Troco:</span>
-                        <strong id="exibe-fundo-troco" style="color: #495057;">R$ 0.00</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
-                        <span>Vendas do Dia (Sistema):</span>
-                        <strong id="exibe-vendas-dia" style="color: #2b9348;">R$ 0.00</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 16px; border-top: 1px solid #dee2e6; padding-top: 8px; margin-top: 8px;">
-                        <span><strong>Total Esperado em Caixa:</strong></span>
-                        <strong id="exibe-total-caixa" style="color: #4a0072;">R$ 0.00</strong>
-                    </div>
-
-                    <button class="btn-caixa btn-fechar" onclick="fecharCaixa()">🔒 FECHAR CAIXA DO DIA</button>
-                </div>
-
-                <!-- Botão de Relatório -->
-                <button class="btn-caixa btn-relatorio" onclick="imprimirRelatorioCaixa()">🖨️ Imprimir Relatório Geral do Dia</button>
-            </div>
-
-            <!-- Card de Dica Rápida -->
-            <div class="admin-card" style="background: #e8f4f8; border-left: 4px solid #0077b6;">
-                <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #0077b6;">💡 Dica de Gestão</h3>
-                <p style="margin: 0; font-size: 12px; color: #495057; line-height: 1.4;">
-                    Abra o caixa no início do turno informando o valor de troco na gaveta. Ao final do dia, feche o caixa e imprima o relatório para conferir os valores recebidos!
-                </p>
-            </div>
-        </div>
-
     </div>
 
-    <!-- LIGAÇÃO COM O JAVASCRIPT -->
+    <!-- PAINEL REAL AUDITADO -->
+    <div id="painel-conteudo-protegido" style="display: none;">
+        <header class="admin-top-bar">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 24px;">👤</span>
+                <!-- SAUDAÇÃO GERENCIAL ADICIONADA -->
+                <h1 style="font-size: 18px; margin: 0;">Sócio ativo: <span id="nome-socio-logado" style="color: #ffc107; font-weight: bold;">...</span></h1>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="cozinha.html" class="btn-voltar" style="background: #0077b6;">🍳 Monitor da Cozinha</a>
+                <button onclick="fazerLogoutAdmin()" class="btn-voltar" style="background: #6c757d;">🔒 Trocar Sócio</button>
+                <a href="index.html" class="btn-voltar">🛒 Voltar para o Caixa</a>
+            </div>
+        </header>
+
+        <div class="admin-layout">
+            <div class="col-esquerda">
+                <div class="admin-card">
+                    <h2>🍔 Adicionar Novo Produto ao Cardápio</h2>
+                    <div class="form-grid">
+                        <input type="text" id="nome-produto" class="form-input" placeholder="Nome do Produto">
+                        <select id="categoria-produto" class="form-input">
+                            <option value="">Categoria...</option>
+                            <option value="Açaí">🟣 Açaí</option>
+                            <option value="Cremes">🍨 Cremes</option>
+                            <option value="Adicionais">🍓 Adicionais</option>
+                            <option value="Coberturas">🍫 Coberturas</option>
+                            <option value="Tapiocas">🥞 Tapiocas</option>
+                            <option value="Bebidas">🥤 Bebidas</option>
+                        </select>
+                        <input type="number" id="preco-produto" class="form-input" placeholder="Preço (R$)" step="0.50">
+                        <button id="btn-adicionar" onclick="adicionarProduto()" class="btn-add">+ Adicionar</button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h2>📋 Produtos Cadastrados</h2>
+                    <div id="lista-produtos" class="log-container" style="max-height: 200px;"></div>
+                </div>
+
+                <div class="admin-card">
+                    <h2>📜 Histórico de Vendas (Hoje)</h2>
+                    <div id="historico-vendas" class="log-container"></div>
+                </div>
+
+                <div class="admin-card">
+                    <h2>💸 Extrato de Movimentações (Sangrias / Suprimentos)</h2>
+                    <div id="extrato-caixa" class="log-container"></div>
+                </div>
+            </div>
+
+            <div class="col-direita" style="position: sticky; top: 20px;">
+                <div class="admin-card">
+                    <h2>💰 Controle de Caixa</h2>
+                    <div id="status-caixa-box" class="caixa-status-box caixa-fechado">🔴 CAIXA FECHADO</div>
+
+                    <div id="area-abertura-caixa">
+                        <label style="font-size: 13px; font-weight: bold;">💵 Saldo Inicial (Fundo de Troco):</label>
+                        <input type="number" id="saldo-inicial" class="form-input" style="margin-top:5px;" value="0.00">
+                        <button class="btn-caixa btn-abrir" onclick="abrirCaixa()">🔓 ABRIR CAIXA AGORA</button>
+                    </div>
+
+                    <div id="area-caixa-aberto" style="display: none; border-top: 1px dashed #dee2e6; padding-top: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Fundo de Troco:</span><strong id="exibe-fundo-troco">R$ 0.00</strong>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>Faturamento Total do Dia:</span><strong id="exibe-vendas-dia" style="color: #2b9348;">R$ 0.00</strong>
+                        </div>
+                        <div class="faturamento-item"><span>↳ 💵 Em Dinheiro:</span><span id="exibe-vendas-dinheiro">R$ 0.00</span></div>
+                        <div class="faturamento-item"><span>↳ ⚡ Em PIX:</span><span id="exibe-vendas-pix">R$ 0.00</span></div>
+                        <div class="faturamento-item"><span>↳ 💳 Em Cartão:</span><span id="exibe-vendas-cartao">R$ 0.00</span></div>
+                        <div class="faturamento-item" style="border-top: 1px dashed #eee; padding-top: 3px; margin-top: 3px;"><span>↳ 🛵 Taxas de Entrega (Motoboy):</span><span id="exibe-vendas-entrega" style="font-weight:bold; color:#0077b6;">R$ 0.00</span></div>
+                        
+                        <div style="display: flex; justify-content: space-between; font-size: 16px; border-top: 1px solid #dee2e6; padding-top: 12px; margin-top:10px;">
+                            <span><strong>Total Físico na Gaveta:</strong></span><strong id="exibe-total-caixa" style="color: #4a0072;">R$ 0.00</strong>
+                        </div>
+                        
+                        <button class="btn-caixa btn-fechar" onclick="fecharCaixa()">🔒 FECHAR CAIXA DO DIA</button>
+                    </div>
+                    <button class="btn-caixa btn-relatorio" onclick="imprimirRelatorioCaixa()">🖨️ Imprimir Cupom do Caixa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

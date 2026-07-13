@@ -1,0 +1,200 @@
+[
+  {
+    "id": 1,
+    "itens": [
+      {
+        "id": 39,
+        "name": "Tapioca Carne de Sol",
+        "price": 15.49,
+        "obs": "Copos simples tradicional"
+      }
+    ],
+    "total": 15.49,
+    "data": "2026-07-13T01:18:23.095Z"
+  },
+  {
+    "id": 2,
+    "itens": [
+      {
+        "id": 4,
+        "name": "Açaí Copo 500ml",
+        "price": 24,
+        "obs": "Coberturas: Leite Condensado, Calda de Chocolate | Acomps: Gergelim torrado, Granola, Amendoim, Castanha de Caju, Flocos de Coco"
+      }
+    ],
+    "total": 24,
+    "data": "2026-07-13T01:25:06.300Z"
+  },
+  {
+    "id": 3,
+    "itens": [
+      {
+        "id": 5,
+        "name": "Açaí Copo 700ml",
+        "price": 34,
+        "obs": "Coberturas: Leite Condensado | Acomps: Gergelim torrado"
+      }
+    ],
+    "total": 34,
+    "data": "2026-07-13T01:34:02.849Z"
+  },
+  {
+    "id": 5,
+    "itens": [
+      {
+        "id": 5,
+        "name": "Açaí Copo 700ml",
+        "price": 34,
+        "obs": "Copos simples tradicional"
+      }
+    ],
+    "total": 34,
+    "data": "2026-07-13T01:35:08.090Z"
+  },
+  {
+    "id": 6,
+    "itens": [
+      {
+        "id": 3,
+        "name": "Açaí Copo 300ml",
+        "price": 16,
+        "obs": "Coberturas: Leite Condensado, Fini Dentaduras | Acomps: Gergelim torrado, Granola, Amendoim, Castanha de Caju, Flocos de Coco"
+      }
+    ],
+    "total": 16,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 50,
+    "troco": 34,
+    "data": "2026-07-13T01:44:47.803Z"
+  },
+  {
+    "id": 7,
+    "itens": [
+      {
+        "id": 5,
+        "name": "Açaí Copo 700ml",
+        "price": 34,
+        "obs": "Copos simples tradicional"
+      }
+    ],
+    "total": 34,
+    "formaPagamento": "PIX",
+    "valorRecebido": 34,
+    "troco": 0,
+    "data": "2026-07-13T01:58:03.323Z"
+  },
+  {
+    "id": 8,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Copos simples tradicional"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "data": "2026-07-13T02:01:15.567Z"
+  },
+  {
+    "id": 9,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Copos simples tradicional"
+      }
+    ],
+    "total": 13,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 50,
+    "troco": 37,
+    "tipoPedido": "Entrega",
+    "taxaEntrega": 3,
+    "data": "2026-07-13T02:09:02.327Z"
+  },
+  {
+    "id": 10,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Copos simples tradicional"
+      }
+    ],
+    "total": 13,
+    "formaPagamento": "PIX",
+    "valorRecebido": 13,
+    "troco": 0,
+    "tipoPedido": "Entrega",
+    "taxaEntrega": 3,
+    "data": "2026-07-13T02:09:38.056Z"
+  },
+  {
+    "id": 11,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Leite Condensado"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 100,
+    "troco": 90,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "status": "Cancelado",
+    "data": "2026-07-13T02:40:44.415Z",
+    "canceladoPor": "Sócio A",
+    "canceladoEm": "2026-07-13T03:35:35.352Z",
+    "motivoCancelamento": "A mãe da criança disse que ele não pode comer doces."
+  },
+  {
+    "id": 12,
+    "itens": [
+      {
+        "id": 3,
+        "name": "Açaí Copo 300ml",
+        "price": 16,
+        "obs": "Acomps: Gergelim torrado, Amendoim, Castanha de Caju, Flocos de Coco, Farinha Láctea"
+      }
+    ],
+    "total": 16,
+    "formaPagamento": "PIX",
+    "valorRecebido": 16,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "status": "Pronto",
+    "data": "2026-07-13T02:49:24.561Z"
+  },
+  {
+    "id": 13,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Acomps: Gergelim torrado, Granola"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "status": "Cancelado",
+    "data": "2026-07-13T02:56:19.732Z",
+    "canceladoPor": "Sócio A",
+    "canceladoEm": "2026-07-13T03:28:06.343Z"
+  }
+]
