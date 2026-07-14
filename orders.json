@@ -196,5 +196,62 @@
     "data": "2026-07-13T02:56:19.732Z",
     "canceladoPor": "Sócio A",
     "canceladoEm": "2026-07-13T03:28:06.343Z"
+  },
+  {
+    "id": 14,
+    "itens": [
+      {
+        "id": 4,
+        "name": "Açaí Copo 500ml",
+        "price": 24,
+        "obs": "Coberturas: Leite Condensado, Fini Dentaduras | Acomps: Castanha de Caju"
+      }
+    ],
+    "total": 27,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 50,
+    "troco": 23,
+    "tipoPedido": "Entrega",
+    "taxaEntrega": 3,
+    "status": "Pronto",
+    "data": "2026-07-14T01:14:13.985Z"
+  },
+  {
+    "id": 15,
+    "itens": [
+      {
+        "id": 4,
+        "name": "Açaí Copo 500ml",
+        "price": 24,
+        "obs": "Acomps: Castanha de Caju, Chocoball, Confete"
+      }
+    ],
+    "total": 24,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 100,
+    "troco": 76,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "status": "Pronto",
+    "data": "2026-07-14T02:02:43.563Z"
+  },
+  {
+    "id": 16,
+    "itens": [
+      {
+        "id": 4,
+        "name": "Açaí Copo 500ml",
+        "price": 24,
+        "obs": "Coberturas: Leite Condensado, Calda de Chocolate | Acomps: Gergelim torrado, Granola, Amendoim, Castanha de Caju, Flocos de Coco"
+      }
+    ],
+    "total": 27,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 100,
+    "troco": 73,
+    "tipoPedido": "Entrega",
+    "taxaEntrega": 3,
+    "status": "Pronto",
+    "data": "2026-07-14T03:16:00.462Z"
   }
 ]

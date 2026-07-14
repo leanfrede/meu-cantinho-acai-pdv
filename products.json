@@ -5,8 +5,8 @@
     "category": "Açaí",
     "price": 10,
     "available": true,
-    "usuarioAtividade": "Sócio A",
-    "dataAtividade": "2026-07-13T03:27:10.489Z"
+    "usuarioAtividade": "Sócio B",
+    "dataAtividade": "2026-07-14T00:10:20.126Z"
   },
   {
     "id": 3,
@@ -233,5 +233,14 @@
     "name": "Tapioca Carne de Sol",
     "category": "Tapiocas",
     "price": 15.49
+  },
+  {
+    "id": 40,
+    "name": "Granulado de Chocolate",
+    "category": "Adicionais",
+    "price": 0,
+    "available": true,
+    "usuarioAtividade": "Sócio B",
+    "dataAtividade": "2026-07-14T00:12:39.860Z"
   }
 ]

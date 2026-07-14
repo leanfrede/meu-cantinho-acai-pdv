@@ -12,6 +12,7 @@ let ultimoPedidoSalvo = null;
 let caixaAberto = localStorage.getItem('caixa_aberto') === 'true';
 let fundoDeTroco = parseFloat(localStorage.getItem('caixa_fundo')) || 0;
 
+// CONFIGURAÇÃO DOS DOIS SÓCIOS E SEUS PINS INDIVIDUAIS
 const DICIONARIO_SOCIOS = {
     "1111": "Sócio A",
     "2222": "Sócio B"
@@ -462,7 +463,6 @@ async function carregarHistoricoVendas() {
                 <button onclick="cancelarVendaAdmin(${o.id})" style="background:none; border:none; cursor:pointer; font-size:14px; margin-left:8px;">🗑️</button>
             `;
 
-            // ATUALIZAÇÃO: Injeta visualmente o motivo do cancelamento na listagem
             if (o.status === 'Cancelado') {
                 const dataCancelado = o.canceladoEm ? ` às ${formatarDataHora(o.canceladoEm).split(' ')[1]}` : '';
                 const motivoStr = o.motivoCancelamento ? `<br><span style="color:#c92a2a; font-size:11px;"><b>Motivo:</b> ${o.motivoCancelamento}</span>` : '';
@@ -486,6 +486,7 @@ async function carregarHistoricoVendas() {
     } catch (e) { console.error(e); }
 }
 
+// ATUALIZAÇÃO: Impressão do Cupom totalmente em NEGRITO PRETO (Para Impressoras Térmicas)
 async function reimprimirCupomCliente(id) {
     try {
         const res = await fetch('http://localhost:3000/api/orders');
@@ -495,16 +496,26 @@ async function reimprimirCupomCliente(id) {
 
         const JANELAPRINT = window.open('', '_blank', 'width=350,height=600');
         let itensHtml = '';
-        o.itens.forEach(i => { itensHtml += `<div style="margin-bottom:6px;"><strong>1x ${i.name}</strong><br><small style="color:#555;">${i.obs}</small><br>R$ ${i.price.toFixed(2)}</div>`; });
+        
+        // Tudo envelopado em <strong> para forçar a impressora térmica a não falhar a cor
+        o.itens.forEach(i => { 
+            itensHtml += `
+            <div style="margin-bottom:8px;">
+                <strong>1x ${i.name}</strong><br>
+                <strong>${i.obs}</strong><br>
+                <strong>R$ ${i.price.toFixed(2)}</strong>
+            </div>`; 
+        });
 
         JANELAPRINT.document.write(`
-            <html><body style="font-family:monospace;width:280px;font-size:12px;margin:10px;">
-            <center><strong>MEU CANTINHO AÇAÍ</strong><br>COMPROVANTE DE PEDIDO<br>Pedido #${o.id} (${o.tipoPedido})<br>${new Date(o.data).toLocaleString('pt-BR')}</center><hr style="border-top:1px dashed #000;">
+            <html><body style="font-family:monospace;width:280px;font-size:13px;margin:10px; color:#000;">
+            <center><strong>MEU CANTINHO AÇAÍ</strong><br><strong>COMPROVANTE DE PEDIDO</strong><br><strong>Pedido #${o.id} (${o.tipoPedido})</strong><br><strong>${new Date(o.data).toLocaleString('pt-BR')}</strong></center>
+            <hr style="border-top:1px dashed #000;">
             ${itensHtml}
             <hr style="border-top:1px dashed #000;">
-            ${o.tipoPedido === 'Entrega' ? `Taxa Entrega: R$ ${o.taxaEntrega.toFixed(2)}<br>` : ''}
+            ${o.tipoPedido === 'Entrega' ? `<strong>Taxa Entrega: R$ ${o.taxaEntrega.toFixed(2)}</strong><br>` : ''}
             <strong>FORMA PAGTO: ${o.formaPagamento}</strong><br>
-            <strong>STATUS: ${(o.status || '').toUpperCase()} ${o.status === 'Cancelado' ? `por ${o.canceladoPor} em ${formatarDataHora(o.canceladoEm)}<br>MOTIVO: ${o.motivoCancelamento || 'Não informado'}` : ''}</strong><br>
+            <strong>STATUS: ${(o.status || '').toUpperCase()} ${o.status === 'Cancelado' ? `por ${o.canceladoPor}` : ''}</strong><br>
             <strong>VALOR TOTAL: R$ ${o.total.toFixed(2)}</strong>
             <script>window.onload = function() { window.print(); }</script></body></html>
         `);
@@ -512,12 +523,11 @@ async function reimprimirCupomCliente(id) {
     } catch (e) { console.error(e); }
 }
 
-// ATUALIZAÇÃO CRÍTICA: Captura obrigatória do motivo do cancelamento
 async function cancelarVendaAdmin(id) {
     if (!confirm("⚠️ Tem certeza que deseja CANCELAR e estornar este pedido? Os valores contábeis serão corrigidos na hora.")) return;
     
     const motivo = prompt("📝 Digite obrigatoriamente o motivo/observação deste cancelamento:");
-    if (motivo === null) return; // Se clicar em cancelar na caixa, aborta o processo
+    if (motivo === null) return; 
     if (motivo.trim() === "") {
         alert("❌ Erro: O motivo do cancelamento não pode ficar em branco!");
         return;
@@ -528,7 +538,7 @@ async function cancelarVendaAdmin(id) {
             method: 'DELETE',
             headers: {
                 'X-Usuario': sessionStorage.getItem('admin_usuario'),
-                'X-Motivo': motivo // Injeta o texto digitado no cabeçalho
+                'X-Motivo': motivo 
             }
         });
         if (response.ok) { alert("✅ Venda cancelada e estornada!"); carregarHistoricoVendas(); atualizarTelaCaixa(); }
@@ -659,4 +669,39 @@ function editarProduto(id, n, p) {
         }, 
         body: JSON.stringify({ name: nn, price: np }) 
     }).then(() => carregarProdutosAdmin());
+}
+
+// ATUALIZAÇÃO: Relatório do Caixa agora também totalmente em Negrito e Preto
+async function imprimirRelatorioCaixa() {
+    const resOrders = await fetch('http://localhost:3000/api/orders'); const orders = await resOrders.json();
+    const resCaixa = await fetch('http://localhost:3000/api/caixa'); const movs = await resCaixa.json();
+    const hoje = new Date().toISOString().split('T')[0];
+    
+    const ordHoje = orders.filter(o => o.data.startsWith(hoje) && o.status !== 'Cancelado');
+    const totalVendas = ordHoje.reduce((acc, cur) => acc + cur.total, 0);
+    const totalSuprimentos = movs.filter(m => m.data.startsWith(hoje) && m.tipo === 'suprimento').reduce((acc, cur) => acc + cur.valor, 0);
+    const totalSangrias = movs.filter(m => m.data.startsWith(hoje) && m.tipo === 'sangria').reduce((acc, cur) => acc + cur.valor, 0);
+    
+    const vendasDinheiro = ordHoje.filter(o => o.formaPagamento === 'Dinheiro').reduce((acc, cur) => acc + cur.total, 0);
+    const vendasPIX = ordHoje.filter(o => o.formaPagamento === 'PIX').reduce((acc, cur) => acc + cur.total, 0);
+    const vendasCartao = ordHoje.filter(o => o.formaPagamento === 'Cartão').reduce((acc, cur) => acc + cur.total, 0);
+    const totalEntrega = ordHoje.reduce((acc, cur) => acc + (cur.taxaEntrega || 0), 0);
+    
+    const JANELAPRINT = window.open('', '_blank', 'width=350,height=600');
+    JANELAPRINT.document.write(`
+        <html><body style="font-family:monospace;width:280px;font-size:13px; color:#000;">
+        <center><strong>MEU CANTINHO AÇAÍ</strong><br><strong>FECHAMENTO GERENCIAL</strong><br><strong>${new Date().toLocaleString()}</strong></center><hr style="border-top:1px dashed #000;">
+        <strong>Fundo Troco : R$ ${fundoDeTroco.toFixed(2)}</strong><br>
+        <strong>Vendas (+)  : R$ ${totalVendas.toFixed(2)}</strong><br>
+        <strong>&nbsp;&nbsp;↳ Dinheiro: R$ ${vendasDinheiro.toFixed(2)}</strong><br>
+        <strong>&nbsp;&nbsp;↳ PIX: R$ ${vendasPIX.toFixed(2)}</strong><br>
+        <strong>&nbsp;&nbsp;↳ Cartão: R$ ${vendasCartao.toFixed(2)}</strong><br>
+        <strong>&nbsp;&nbsp;↳ Motoboy (Taxas): R$ ${totalEntrega.toFixed(2)}</strong><br>
+        <strong>Suprim. (+) : R$ ${totalSuprimentos.toFixed(2)}</strong><br>
+        <strong>Sangria (-) : R$ ${totalSangrias.toFixed(2)}</strong><hr style="border-top:1px dashed #000;">
+        <strong>TOTAL EM GAVETA:<br>R$ ${(fundoDeTroco + vendasDinheiro + totalSuprimentos - totalSangrias).toFixed(2)}</strong><br>
+        <strong>(Dinheiro Físico + Troco Inicial)</strong>
+        <script>window.onload = function() { window.print(); }</script></body></html>
+    `);
+    JANELAPRINT.document.close();
 }
