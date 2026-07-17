@@ -43,7 +43,11 @@ document.addEventListener('keydown', (event) => {
 // INICIALIZAÇÃO AUTOMÁTICA
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('product-grid')) carregarProdutos();
+    if (document.getElementById('product-grid')) {
+        carregarProdutos();
+        carregarAlertaPedidosOnline();
+        setInterval(carregarAlertaPedidosOnline, 5000); // Checa pedidos online a cada 5 segundos
+    }
     
     if (document.getElementById('lista-produtos')) {
         if (sessionStorage.getItem('admin_autenticado') === 'true') {
@@ -111,6 +115,60 @@ function fazerLogoutAdmin() {
 function sairParaCaixa() { window.location.href = "index.html"; }
 
 // ==========================================================================
+// MONITOR DE ALERTA DE PEDIDOS DO CARDÁPIO ONLINE (FRENTE DE CAIXA)
+// ==========================================================================
+async function carregarAlertaPedidosOnline() {
+    const barra = document.getElementById('alerta-pedidos-online');
+    const botoes = document.getElementById('lista-botoes-online');
+    const txt = document.getElementById('txt-alerta-online');
+    if (!barra) return;
+
+    try {
+        const res = await fetch('/api/orders');
+        const orders = await res.json();
+        
+        // Procura pedidos que vieram da web e que ainda estão como PENDENTE ou A COMBINAR
+        const pendentesOnline = orders.filter(o => o.origem === 'Online' && o.formaPagamento.includes('A Combinar'));
+
+        if (pendentesOnline.length === 0) {
+            barra.style.display = 'none';
+            return;
+        }
+
+        barra.style.display = 'flex';
+        txt.innerText = `🔔 ${pendentesOnline.length} novo(s) pedido(s) vindo do Cardápio Digital!`;
+        botoes.innerHTML = '';
+
+        pendentesOnline.forEach(o => {
+            const btn = document.createElement('button');
+            btn.style = "background: #2b9348; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);";
+            btn.innerText = `✔ Aprovar Pedido #${o.id} (${o.nomeClienteOnline || 'Cliente'}) - R$ ${o.total.toFixed(2)}`;
+            btn.onclick = () => aprovarPedidoOnline(o);
+            botoes.appendChild(btn);
+        });
+
+    } catch(e) { console.error("Erro ao checar online:", e); }
+}
+
+async function aprovarPedidoOnline(pedido) {
+    const formaPagamento = prompt(`💰 Como o cliente "${pedido.nomeClienteOnline || 'Online'}" vai pagar este pedido (R$ ${pedido.total.toFixed(2)})?\n\nDigite: Dinheiro, PIX ou Cartão`, "PIX");
+    if (!formaPagamento) return;
+
+    try {
+        const res = await fetch(`/api/orders/${pedido.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Pendente', formaPagamento: formaPagamento })
+        });
+        if (res.ok) {
+            alert(`✅ Pedido #${pedido.id} aprovado e confirmado no caixa com pagamento em "${formaPagamento}"!`);
+            carregarAlertaPedidosOnline();
+            atualizarTelaCaixa();
+        }
+    } catch(e) { console.error(e); }
+}
+
+// ==========================================================================
 // FRENTE DE CAIXA (VENDAS COM ESTOQUE INTELIGENTE)
 // ==========================================================================
 async function carregarProdutos() {
@@ -150,7 +208,6 @@ function renderizarProdutos() {
             btn.innerHTML = `<span>${p.name}<br><small style="color:#dc3545; font-weight:bold; font-size:11px;">⚠️ ESGOTADO (0 un.)</small></span><span class="price-tag" style="background:#6c757d; color:white;">R$ ${p.price.toFixed(2)}</span>`;
             btn.onclick = () => alert(`⚠️ Desculpe! O item "${p.name}" acabou no estoque (0 unidades restantes). Peça reposição ao gerente!`);
         } else {
-            // ALERTA DE ESTOQUE BAIXO (≤ 5 unidades)
             let alertaEstoque = `<small style="color:#868e96; font-size:11px; display:block; margin-top:3px;">📦 Estoque: ${estoqueAtual} un.</small>`;
             if (estoqueAtual <= 5) {
                 alertaEstoque = `<small style="color:#d62828; font-weight:bold; font-size:11px; display:block; margin-top:3px; background:#ffe5d9; padding:2px 4px; border-radius:4px;">⚠️ ÚLTIMAS ${estoqueAtual} UNIDADES!</small>`;
@@ -325,8 +382,6 @@ async function confirmarVendaComPagamento() {
             carrinho = []; atualizarCarrinhoUI(); fecharModalPagamento();
             document.getElementById('whatsapp-cliente').value = telefoneFidelidadeFinal ? telefoneFidelidadeFinal : '';
             document.getElementById('modal-sucesso').style.display = 'flex';
-            
-            // Re-renderiza para atualizar os estoques na tela na mesma hora!
             carregarProdutos();
         }
     } catch (error) { console.error(error); }
@@ -399,8 +454,8 @@ async function carregarPedidosCozinha() {
         filaPendente.forEach(p => {
             const card = document.createElement('div');
             card.className = 'card-pedido-cozinha';
-            const badgeClass = p.tipoPedido === 'Entrega' ? 'pedido-badge-entrega' : 'pedido-badge-balcao';
-            const badgeTexto = p.tipoPedido === 'Entrega' ? '🛵 ENTREGA' : '🏪 BALCÃO';
+            const badgeClass = p.tipoPedido.includes('Entrega') ? 'pedido-badge-entrega' : 'pedido-badge-balcao';
+            const badgeTexto = p.tipoPedido.includes('Entrega') ? '🛵 ENTREGA' : '🏪 BALCÃO';
 
             let itensHtml = '';
             p.itens.forEach(i => { itensHtml += `<div class="item-linha-cozinha"><strong>📦 1x ${i.name}</strong><p>📋 ${i.obs}</p></div>`; });
@@ -409,8 +464,8 @@ async function carregarPedidosCozinha() {
 
             card.innerHTML = `
                 <div>
-                    <div class="pedido-topo"><span style="font-weight:bold; font-size:16px;">Comanda #${p.id}</span><span class="${badgeClass}">${badgeTexto}</span></div>
-                    <div style="font-size:13px; color:#868e96; margin-bottom:12px;">⏰ Recebido às: ${horaPedido}</div>
+                    <div class="pedido-topo"><span style="font-weight:bold; font-size:16px;">Comanda #${p.id} ${p.origem === 'Online' ? '🌐 ONLINE' : ''}</span><span class="${badgeClass}">${badgeTexto}</span></div>
+                    <div style="font-size:13px; color:#868e96; margin-bottom:12px;">⏰ Recebido às: ${horaPedido} ${p.nomeClienteOnline ? `| Cliente: <b>${p.nomeClienteOnline}</b>` : ''}</div>
                     <div class="pedido-corpo-itens">${itensHtml}</div>
                 </div>
                 <button class="btn-pronto" onclick="concluirPreparoCozinha(${p.id})">✔ CONCLUÍDO / PRONTO</button>
@@ -528,7 +583,6 @@ async function carregarProdutosAdmin() {
             const dataStr = p.dataAtividade ? ` em ${formatarDataHora(p.dataAtividade)}` : '';
             const responsavelStr = p.usuarioAtividade ? `(Por: ${p.usuarioAtividade}${dataStr})` : '';
 
-            // Cor de destaque para o estoque lá no admin
             let corEstoque = '#2b9348';
             if (estoqueAtual <= 5) corEstoque = '#d62828';
 
@@ -553,7 +607,6 @@ async function carregarProdutosAdmin() {
     } catch (e) { console.error(e); }
 }
 
-// NOVA FUNÇÃO: ADICIONAR MERCADORIA (REPOSIÇÃO)
 async function reporEstoque(id, nomeProduto) {
     const qtdStr = prompt(`📦 Reposição de Estoque para: "${nomeProduto}"\n\nQuantas unidades extras chegaram da rua/fornecedor?`);
     if (!qtdStr) return;
@@ -597,7 +650,7 @@ async function carregarHistoricoVendas() {
         ordHoje.reverse().forEach(o => {
             const div = document.createElement('div');
             div.style = "padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;";
-            const lblEntrega = o.tipoPedido === 'Entrega' ? '🛵' : '🏪';
+            const lblEntrega = o.tipoPedido.includes('Entrega') ? '🛵' : '🏪';
             
             let statusBadge = `<span style="font-size:12px; font-weight:bold; color:${o.status === 'Pronto' ? '#2b9348' : '#ffc107'}">${(o.status || 'Pendente').toUpperCase()}</span>`;
             let corTotal = '#2b9348';
@@ -641,7 +694,7 @@ async function reimprimirCupomCliente(id) {
             <html><body style="font-family:monospace;width:280px;font-size:13px;margin:10px; color:#000;">
             <center><strong>MEU CANTINHO AÇAÍ</strong><br><strong>COMPROVANTE DE PEDIDO</strong><br><strong>Pedido #${o.id} (${o.tipoPedido})</strong><br><strong>${new Date(o.data).toLocaleString('pt-BR')}</strong></center><hr style="border-top:1px dashed #000;">
             ${itensHtml}<hr style="border-top:1px dashed #000;">
-            ${o.tipoPedido === 'Entrega' ? `<strong>Taxa Entrega: R$ ${o.taxaEntrega.toFixed(2)}</strong><br>` : ''}
+            ${o.tipoPedido.includes('Entrega') ? `<strong>Taxa Entrega: R$ ${o.taxaEntrega.toFixed(2)}</strong><br>` : ''}
             <strong>FORMA PAGTO: ${o.formaPagamento}</strong><br>
             <strong>STATUS: ${(o.status || '').toUpperCase()} ${o.status === 'Cancelado' ? `por ${o.canceladoPor}` : ''}</strong><br>
             <strong>VALOR TOTAL: R$ ${o.total.toFixed(2)}</strong><script>window.onload = function() { window.print(); }</script></body></html>
@@ -665,7 +718,7 @@ async function cancelarVendaAdmin(id) {
             carregarHistoricoVendas(); 
             atualizarTelaCaixa(); 
             carregarGraficosDashboard();
-            carregarProdutosAdmin(); // Atualiza a contagem visual na hora
+            carregarProdutosAdmin();
         }
     } catch (e) { console.error(e); }
 }

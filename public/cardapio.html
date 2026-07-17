@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Digital - Meu Cantinho Açaí</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background-color: #f8f9fa; margin: 0; padding-bottom: 80px; font-family: sans-serif; }
+        .cli-header { background: linear-gradient(135deg, #4a0072, #7b1fa2); color: white; text-align: center; padding: 25px 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .cli-header h1 { margin: 0; font-size: 24px; }
+        .cli-header p { margin: 5px 0 0 0; font-size: 13px; opacity: 0.9; }
+        .cli-container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+        
+        .cli-step-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .cli-step-box h2 { font-size: 16px; color: #4a0072; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid #f1f3f5; padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-input-cli { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 15px; box-sizing: border-box; margin-bottom: 10px; }
+        
+        .cli-prod-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .cli-prod-card { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: 0.2s; background: #fff; }
+        .cli-prod-card:hover, .cli-prod-card.selected { border-color: #4a0072; background: #fdf2fe; }
+        .cli-prod-info h3 { margin: 0; font-size: 15px; color: #333; }
+        .cli-prod-info small { color: #666; font-size: 12px; }
+        .cli-prod-price { font-weight: bold; color: #2b9348; font-size: 16px; }
+        
+        .cli-carrinho-float { position: fixed; bottom: 0; left: 0; width: 100%; background: #4a0072; color: white; padding: 15px 20px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.2); z-index: 1000; }
+        .btn-enviar-pedido { background: #25d366; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .btn-remover-cli { background: none; border: none; color: #d62828; cursor: pointer; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <header class="cli-header">
+        <span style="font-size: 35px;">🔮</span>
+        <h1>Meu Cantinho Açaí</h1>
+        <p>🍧 Monte o seu açaí e receba em casa ou retire no balcão!</p>
+    </header>
+
+    <div class="cli-container">
+        
+        <!-- PASSO 1: DADOS DO CLIENTE -->
+        <div class="cli-step-box">
+            <h2>👤 1. Seus Dados</h2>
+            <input type="text" id="cli-nome" class="form-input-cli" placeholder="Seu Nome e Sobrenome *">
+            <input type="tel" id="cli-fone" class="form-input-cli" placeholder="Seu WhatsApp (com DDD) *" maxlength="15">
+            <select id="cli-tipo-entrega" class="form-input-cli" onchange="alternarEnderecoCli()" style="font-weight: bold; color: #4a0072;">
+                <option value="Balcão">🏪 Vou Retirar no Balcão</option>
+                <option value="Entrega">🛵 Quero Entrega em Casa (Motoboy)</option>
+            </select>
+            <input type="text" id="cli-endereco" class="form-input-cli" placeholder="Seu Endereço Completo + Bairro *" style="display: none; border-color: #0077b6; background: #f0f8ff;">
+        </div>
+
+        <!-- PASSO 2: ESCOLHER O PRODUTO -->
+        <div class="cli-step-box">
+            <h2>🍧 2. Escolha o Tamanho</h2>
+            <div id="cli-grid-produtos" class="cli-prod-list">
+                <!-- Carregado via JavaScript -->
+                <p style="color: #666; text-align: center;">Carregando cardápio...</p>
+            </div>
+        </div>
+
+        <!-- PASSO 3: ITENS NO CARRINHO -->
+        <div class="cli-step-box" id="box-carrinho-cli" style="display: none;">
+            <h2>🛒 3. Seu Pedido</h2>
+            <div id="cli-lista-itens"></div>
+        </div>
+
+    </div>
+
+    <!-- BARRA FIXA NO FUNDO COM TOTAL -->
+    <div class="cli-carrinho-float">
+        <div>
+            <small style="display: block; font-size: 11px; opacity: 0.8;">Total do Pedido:</small>
+            <strong id="cli-total-float" style="font-size: 20px;">R$ 0.00</strong>
+        </div>
+        <button class="btn-enviar-pedido" onclick="enviarPedidoOnline()">🚀 Enviar Pedido para Loja</button>
+    </div>
+
+    <!-- MODAL DE PERSONALIZAÇÃO (IGUAL AO DO CAIXA) -->
+    <div id="modal-produto-cli" class="modal-overlay">
+        <div class="modal-box" style="max-width: 450px;">
+            <h2 id="cli-modal-titulo">Personalizar Açaí</h2>
+            <div id="cli-modal-conteudo" style="max-height: 60vh; overflow-y: auto; padding-right: 5px; text-align: left;">
+                <label style="color: #4a0072; font-weight: bold; display: block; margin-bottom: 5px;">🍫 COBERTURAS (Escolha até 2):</label>
+                <div class="checkbox-group" style="margin-bottom: 15px;">
+                    <label><input type="checkbox" name="cli-cobertura" value="Leite Condensado"> Leite Condensado</label>
+                    <label><input type="checkbox" name="cli-cobertura" value="Mel"> Mel</label>
+                    <label><input type="checkbox" name="cli-cobertura" value="Calda de Chocolate"> Calda de Chocolate</label>
+                    <label><input type="checkbox" name="cli-cobertura" value="Calda de Morango"> Calda de Morango</label>
+                    <label><input type="checkbox" name="cli-cobertura" value="Fini Dentaduras"> Fini Dentaduras</label>
+                    <label><input type="checkbox" name="cli-cobertura" value="Fini Bananas"> Fini Bananas</label>
+                </div>
+                
+                <label style="color: #4a0072; font-weight: bold; display: block; margin-bottom: 5px;">🍓 ACOMPANHAMENTOS (Escolha até 5):</label>
+                <div class="checkbox-group" style="grid-template-columns: 1fr; gap: 6px;">
+                    <label><input type="checkbox" name="cli-acomp" value="Gergelim torrado"> Gergelim torrado</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Granola"> Granola</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Amendoim"> Amendoim</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Castanha de Caju"> Castanha de Caju</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Flocos de Coco"> Flocos de Coco</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Leite em Pó"> Leite em Pó</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Farinha Láctea"> Farinha Láctea</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Chocoball"> Chocoball</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Granulado Colorido"> Granulado Colorido</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Confete"> Confete</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Ovomaltine"> Ovomaltine</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Gotas de Chocolate"> Gotas de Chocolate</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Doce de Leite"> Doce de Leite</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Tubete"> Tubete</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Paçoquinha"> Paçoquinha</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Jujuba"> Jujuba</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Marshmallow"> Marshmallow</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Fini Cobrinha Azedinha"> Fini Cobrinha Azedinha</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Nutella"> Nutella</label>
+                    <label><input type="checkbox" name="cli-acomp" value="Xarope de Guaraná"> Xarope de Guaraná</label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancelar" onclick="fecharModalCli()">Cancelar</button>
+                <button class="btn-modal-confirmar" onclick="confirmarAdicaoCli()">✔ Adicionar ao Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS DO CLIENTE -->
+    <script>
+        let cliCarrinho = [];
+        let prodCliAtual = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/products');
+                const produtos = await res.json();
+                const grid = document.getElementById('cli-grid-produtos');
+                grid.innerHTML = '';
+
+                // Mostra só os Açaís ou Cremes disponíveis para o cliente pedir online
+                const disponiveis = produtos.filter(p => p.available !== false && (p.estoque === undefined || p.estoque > 0));
+
+                disponiveis.forEach(p => {
+                    if(p.category === 'Açaí' || p.category === 'Cremes') {
+                        const card = document.createElement('div');
+                        card.className = 'cli-prod-card';
+                        card.innerHTML = `
+                            <div class="cli-prod-info">
+                                3>${p.name}</h3>
+                                <small>${p.category} • Monte do seu jeito</small>
+                            </div>
+                            <span class="cli-prod-price">R$ ${p.price.toFixed(2)}</span>
+                        `;
+                        card.onclick = () => abrirModalCli(p);
+                        grid.appendChild(card);
+                    }
+                });
+            } catch(e) { console.error(e); }
+        });
+
+        function alternarEnderecoCli() {
+            const tipo = document.getElementById('cli-tipo-entrega').value;
+            const inputEnd = document.getElementById('cli-endereco');
+            if (tipo === 'Entrega') inputEnd.style.display = 'block';
+            else inputEnd.style.display = 'none';
+        }
+
+        function abrirModalCli(p) {
+            prodCliAtual = p;
+            document.getElementById('cli-modal-titulo').innerText = `Personalizar: ${p.name}`;
+            document.querySelectorAll('#cli-modal-conteudo input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById('modal-produto-cli').style.display = 'flex';
+        }
+
+        function fecharModalCli() {
+            document.getElementById('modal-produto-cli').style.display = 'none';
+        }
+
+        function confirmarAdicaoCli() {
+            const cob = Array.from(document.querySelectorAll('input[name="cli-cobertura"]:checked')).map(cb => cb.value);
+            const acomp = Array.from(document.querySelectorAll('input[name="cli-acomp"]:checked')).map(cb => cb.value);
+
+            if (cob.length > 2) { alert("⚠️ Escolha no máximo 2 Coberturas."); return; }
+            if (acomp.length > 5) { alert("⚠️ Escolha no máximo 5 Acompanhamentos."); return; }
+
+            let obs = "";
+            if (cob.length > 0) obs += `Coberturas: ${cob.join(', ')}`;
+            if (acomp.length > 0) obs += (obs ? ' | ' : '') + `Acomps: ${acomp.join(', ')}`;
+            if (!obs) obs = "Copos simples tradicional";
+
+            cliCarrinho.push({ id: prodCliAtual.id, name: prodCliAtual.name, price: prodCliAtual.price, obs: obs });
+            atualizarCarrinhoCli();
+            fecharModalCli();
+        }
+
+        function atualizarCarrinhoCli() {
+            const box = document.getElementById('box-carrinho-cli');
+            const lista = document.getElementById('cli-lista-itens');
+            const totalFloat = document.getElementById('cli-total-float');
+            
+            if (cliCarrinho.length === 0) {
+                box.style.display = 'none';
+                totalFloat.innerText = "R$ 0.00";
+                return;
+            }
+
+            box.style.display = 'block';
+            lista.innerHTML = '';
+            let subtotal = 0;
+
+            cliCarrinho.forEach((item, index) => {
+                subtotal += item.price;
+                const div = document.createElement('div');
+                div.style = "display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #eee; padding: 10px 0;";
+                div.innerHTML = `
+                    <div><strong>1x ${item.name}</strong><br><small style="color:#666;">${item.obs}</small></div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-weight:bold; color:#2b9348;">R$ ${item.price.toFixed(2)}</span>
+                        <button class="btn-remover-cli" onclick="removerCliItem(${index})">❌</button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+
+            totalFloat.innerText = `R$ ${subtotal.toFixed(2)}`;
+        }
+
+        function removerCliItem(i) {
+            cliCarrinho.splice(i, 1);
+            atualizarCarrinhoCli();
+        }
+
+        async function enviarPedidoOnline() {
+            const nome = document.getElementById('cli-nome').value.trim();
+            const fone = document.getElementById('cli-fone').value.replace(/\D/g, '');
+            const tipo = document.getElementById('cli-tipo-entrega').value;
+            const end = document.getElementById('cli-endereco').value.trim();
+
+            if (!nome || fone.length < 10) {
+                alert("⚠️ Por favor, preencha o seu Nome e um WhatsApp válido (com DDD)!");
+                return;
+            }
+            if (tipo === 'Entrega' && !end) {
+                alert("⚠️ Como você escolheu Entrega, preencha o seu Endereço completo!");
+                return;
+            }
+            if (cliCarrinho.length === 0) {
+                alert("⚠️ Escolha pelo menos um açaí para fazer o pedido!");
+                return;
+            }
+
+            const subtotal = cliCarrinho.reduce((acc, cur) => acc + cur.price, 0);
+            
+            // Monta o pacote para enviar para a loja
+            const dadosPedido = {
+                itens: cliCarrinho,
+                total: subtotal,
+                formaPagamento: 'A Combinar (Pedido Online)',
+                valorRecebido: subtotal,
+                troco: 0,
+                tipoPedido: tipo === 'Entrega' ? `Entrega (Endereço: ${end})` : 'Balcão (Pedido Online)',
+                taxaEntrega: 0,
+                clienteFidelidade: fone,
+                status: 'Pendente', // Entra direto como PENDENTE para aparecer na cozinha e no caixa
+                nomeClienteOnline: nome,
+                telefoneOnline: fone,
+                origem: 'Online',
+                data: new Date().toISOString()
+            };
+
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadosPedido)
+                });
+
+                if (res.ok) {
+                    alert("🎉 Pedido enviado com sucesso para o Meu Cantinho Açaí! A loja vai começar a preparar e você pode acompanhar pelo WhatsApp!");
+                    window.location.reload();
+                } else {
+                    alert("❌ Ocorreu um erro ao enviar seu pedido. Tente novamente ou ligue para a loja.");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("❌ Erro de comunicação com o servidor da loja.");
+            }
+        }
+    </script>
+</body>
+</html>

@@ -589,5 +589,26 @@
     "clienteFidelidade": null,
     "status": "Pendente",
     "data": "2026-07-16T23:40:54.686Z"
+  },
+  {
+    "id": 33,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Leite Condensado, Fini Dentaduras | Acomps: Gergelim torrado, Amendoim"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "A Combinar (Pedido Online)",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Entrega (Endereço: Rua Edite Leite Noronha 178, Betel)",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-17T01:46:50.779Z",
+    "pontosAtuais": 3
   }
 ]

@@ -8,7 +8,6 @@
 </head>
 <body>
 
-    <!-- CABEÇALHO ROXO -->
     <header class="top-bar">
         <div class="logo-area">
             <span style="font-size: 24px;">🔮</span>
@@ -17,15 +16,23 @@
         </div>
         <div style="display: flex; align-items: center; gap: 15px;">
             <span style="font-size: 12px; color: #ffc107; font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 4px;">⌨️ Atalhos: F2 = Pagar | ESC = Fechar</span>
+            <a href="cardapio.html" target="_blank" class="btn-admin" style="background: #2b9348;">📱 Ver Cardápio Online</a>
             <a href="cozinha.html" class="btn-admin" style="background: #0077b6;">🍳 Monitor da Cozinha</a>
             <a href="admin.html" class="btn-admin">⚙️ Painel Administrativo</a>
         </div>
     </header>
 
-    <!-- LAYOUT PRINCIPAL EM 2 COLUNAS -->
+    <!-- ÁREA DE ALERTA DE PEDIDOS ONLINE PENDENTES -->
+    <div id="alerta-pedidos-online" style="background: #ffecb3; border-bottom: 2px solid #ffc107; padding: 10px 20px; display: none; align-items: center; justify-content: space-between; font-weight: bold; color: #6f42c1;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 22px; animation: pulse 1s infinite;">🔔</span>
+            <span id="txt-alerta-online">Existem pedidos do Cardápio Digital aguardando aprovação!</span>
+        </div>
+        <div id="lista-botoes-online" style="display: flex; gap: 10px;"></div>
+    </div>
+
     <div class="main-container">
         
-        <!-- COLUNA ESQUERDA: CARDÁPIO (ABAS + PRODUTOS) -->
         <div class="menu-section">
             <div class="tabs">
                 <button class="tab-btn active" onclick="filtrarCategoria('Açaí')">🟣 Açaís</button>
@@ -36,21 +43,16 @@
                 <button class="tab-btn" onclick="filtrarCategoria('Bebidas')">🥤 Bebidas</button>
             </div>
 
-            <div id="product-grid" class="product-grid">
-                <!-- Injetado pelo JavaScript -->
-            </div>
+            <div id="product-grid" class="product-grid"></div>
         </div>
 
-        <!-- COLUNA DIREITA: CARRINHO -->
         <div class="cart-section">
             <div class="cart-header">
                 <h2>🛒 Pedido Atual</h2>
                 <span id="itens-contagem" class="itens-badge">0 itens</span>
             </div>
 
-            <div id="cart-items" class="cart-items-list">
-                <!-- Injetado pelo JavaScript -->
-            </div>
+            <div id="cart-items" class="cart-items-list"></div>
 
             <div class="cart-footer">
                 <div class="total-area">
@@ -119,7 +121,6 @@
         <div class="modal-box" style="max-width: 380px;">
             <h2>Fechar e Pagar</h2>
             
-            <!-- NOVA SESSÃO: CLUBE FIDELIDADE -->
             <div style="background: #fdf2fe; padding: 12px; border-radius: 8px; border: 1px solid #eeb4ff; margin-bottom: 15px;">
                 <label style="font-weight:bold; display:block; color: #4a0072;">🎁 Clube Fidelidade (WhatsApp):</label>
                 <div style="display:flex; gap:5px; margin-top: 5px;">
@@ -183,4 +184,4 @@
 
     <script src="app.js"></script>
 </body>
-</html> 
+</html>
