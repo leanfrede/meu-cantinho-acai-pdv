@@ -8,20 +8,42 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// MAGIA ANTIBLOQUEIO DO NGROK
+app.use((req, res, next) => {
+    res.setHeader('ngrok-skip-browser-warning', 'true');
+    next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 const FILE_PRODUCTS = path.join(__dirname, 'products.json');
 const FILE_ORDERS = path.join(__dirname, 'orders.json');
 const FILE_CAIXA = path.join(__dirname, 'caixa.json');
 const FILE_CLIENTES = path.join(__dirname, 'clientes.json');
+const FILE_CONFIG = path.join(__dirname, 'config.json'); // Novo arquivo de configurações!
 
 function inicializarArquivos() {
     if (!fs.existsSync(FILE_PRODUCTS)) fs.writeFileSync(FILE_PRODUCTS, JSON.stringify([]));
     if (!fs.existsSync(FILE_ORDERS)) fs.writeFileSync(FILE_ORDERS, JSON.stringify([]));
     if (!fs.existsSync(FILE_CAIXA)) fs.writeFileSync(FILE_CAIXA, JSON.stringify([]));
     if (!fs.existsSync(FILE_CLIENTES)) fs.writeFileSync(FILE_CLIENTES, JSON.stringify({}));
+    if (!fs.existsSync(FILE_CONFIG)) fs.writeFileSync(FILE_CONFIG, JSON.stringify({ taxaEntregaPadrao: 3.00 }));
 }
 inicializarArquivos();
+
+/* --- ROTAS DE CONFIGURAÇÃO DA LOJA --- */
+app.get('/api/config', (req, res) => {
+    const data = fs.readFileSync(FILE_CONFIG, 'utf-8');
+    res.json(JSON.parse(data));
+});
+
+app.put('/api/config', (req, res) => {
+    const { taxaEntregaPadrao } = req.body;
+    const config = { taxaEntregaPadrao: parseFloat(taxaEntregaPadrao) || 0 };
+    fs.writeFileSync(FILE_CONFIG, JSON.stringify(config, null, 2));
+    res.json(config);
+});
 
 /* --- ROTAS DE PRODUTOS --- */
 app.get('/api/products', (req, res) => {
@@ -38,7 +60,7 @@ app.post('/api/products', (req, res) => {
     const novoProduto = {
         id: products.length > 0 ? products[products.length - 1].id + 1 : 1,
         name, category, price: parseFloat(price), 
-        estoque: parseInt(estoque) || 50, // Define o estoque inicial (padrão 50)
+        estoque: parseInt(estoque) || 50,
         available: true,
         usuarioAtividade: usuario, dataAtividade: new Date().toISOString()
     };
@@ -60,11 +82,10 @@ app.put('/api/products/:id', (req, res) => {
     products[index].price = price !== undefined ? parseFloat(price) : products[index].price;
     if (available !== undefined) products[index].available = available;
     
-    // Atualização ou Reposição de Estoque
     if (estoque !== undefined) products[index].estoque = parseInt(estoque);
     if (adicionarEstoque) {
         products[index].estoque = (products[index].estoque || 0) + parseInt(adicionarEstoque);
-        if (products[index].estoque > 0) products[index].available = true; // Reativa se estava esgotado
+        if (products[index].estoque > 0) products[index].available = true;
     }
     
     products[index].usuarioAtividade = usuario;
@@ -83,7 +104,7 @@ app.delete('/api/products/:id', (req, res) => {
     res.json({ success: true });
 });
 
-/* --- ROTAS DE CLIENTES (FIDELIDADE) --- */
+/* --- ROTAS DE CLIENTES --- */
 app.get('/api/clientes/:telefone', (req, res) => {
     const tel = req.params.telefone;
     const dataCli = fs.readFileSync(FILE_CLIENTES, 'utf-8');
@@ -98,11 +119,10 @@ app.get('/api/orders', (req, res) => {
 });
 
 app.post('/api/orders', (req, res) => {
-    const { itens, total, formaPagamento, valorRecebido, troco, tipoPedido, taxaEntrega, clienteFidelidade, data } = req.body;
+    const { itens, total, formaPagamento, valorRecebido, troco, tipoPedido, taxaEntrega, clienteFidelidade, data, nomeClienteOnline, origem, detalheTroco } = req.body;
     const fileData = fs.readFileSync(FILE_ORDERS, 'utf-8');
     const orders = JSON.parse(fileData);
     
-    // 1. BAIXA AUTOMÁTICA NO ESTOQUE
     const dataProd = fs.readFileSync(FILE_PRODUCTS, 'utf-8');
     let products = JSON.parse(dataProd);
     
@@ -110,23 +130,26 @@ app.post('/api/orders', (req, res) => {
         const indexProd = products.findIndex(p => p.id === item.id);
         if (indexProd !== -1) {
             let estoqueAtual = products[indexProd].estoque !== undefined ? products[indexProd].estoque : 50;
-            estoqueAtual -= 1; // Subtrai 1 unidade
+            estoqueAtual -= 1;
             if (estoqueAtual <= 0) {
                 estoqueAtual = 0;
-                products[indexProd].available = false; // Esgota automaticamente se zerar
+                products[indexProd].available = false;
             }
             products[indexProd].estoque = estoqueAtual;
         }
     });
     fs.writeFileSync(FILE_PRODUCTS, JSON.stringify(products, null, 2));
-    // Fim da Baixa de Estoque
 
     const novaVenda = {
         id: orders.length > 0 ? orders[orders.length - 1].id + 1 : 1,
         itens, total: parseFloat(total), formaPagamento, valorRecebido, troco,
         tipoPedido: tipoPedido || 'Balcão', taxaEntrega: taxaEntrega ? parseFloat(taxaEntrega) : 0,
         clienteFidelidade: clienteFidelidade || null,
-        status: 'Pendente', data: data || new Date().toISOString()
+        status: 'Pendente', 
+        origem: origem || 'Balcão',
+        nomeClienteOnline: nomeClienteOnline || null,
+        detalheTroco: detalheTroco || null,
+        data: data || new Date().toISOString()
     };
     
     if (clienteFidelidade) {
@@ -158,18 +181,16 @@ app.delete('/api/orders/:id', (req, res) => {
         orders[index].canceladoEm = new Date().toISOString();
         orders[index].motivoCancelamento = motivo; 
         
-        // 2. ESTORNO INTELIGENTE DE ESTOQUE (+1 de volta para cada item)
         const dataProd = fs.readFileSync(FILE_PRODUCTS, 'utf-8');
         let products = JSON.parse(dataProd);
         orders[index].itens.forEach(item => {
             const indexProd = products.findIndex(p => p.id === item.id);
             if (indexProd !== -1) {
                 products[indexProd].estoque = (products[indexProd].estoque || 0) + 1;
-                products[indexProd].available = true; // Reativa o produto caso tivesse zerado
+                products[indexProd].available = true;
             }
         });
         fs.writeFileSync(FILE_PRODUCTS, JSON.stringify(products, null, 2));
-        // Fim do estorno de estoque
 
         if (orders[index].clienteFidelidade) {
             const dataCli = fs.readFileSync(FILE_CLIENTES, 'utf-8');
@@ -186,12 +207,15 @@ app.delete('/api/orders/:id', (req, res) => {
 
 app.put('/api/orders/:id', (req, res) => {
     const id = parseInt(req.params.id);
-    const { status } = req.body;
+    const { status, formaPagamento } = req.body;
     const data = fs.readFileSync(FILE_ORDERS, 'utf-8');
     const orders = JSON.parse(data);
     const index = orders.findIndex(o => o.id === id);
     if (index === -1) return res.status(404).json({ error: "Não encontrado" });
-    orders[index].status = status || orders[index].status;
+    
+    if (status) orders[index].status = status;
+    if (formaPagamento) orders[index].formaPagamento = formaPagamento;
+    
     fs.writeFileSync(FILE_ORDERS, JSON.stringify(orders, null, 2));
     res.json(orders[index]);
 });

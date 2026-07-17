@@ -8,6 +8,7 @@ let produtoSendoConfigurado = null;
 let totalVendaAtual = 0;
 let totalItensCarrinho = 0;
 let ultimoPedidoSalvo = null;
+let taxaEntregaConfigurada = 3.00; // Taxa padrão do sistema
 
 let caixaAberto = localStorage.getItem('caixa_aberto') === 'true';
 let fundoDeTroco = parseFloat(localStorage.getItem('caixa_fundo')) || 0;
@@ -42,11 +43,22 @@ document.addEventListener('keydown', (event) => {
 // ==========================================================================
 // INICIALIZAÇÃO AUTOMÁTICA
 // ==========================================================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Carrega a configuração da taxa de entrega da loja
+    try {
+        const resConfig = await fetch('/api/config');
+        const config = await resConfig.json();
+        if (config.taxaEntregaPadrao !== undefined) {
+            taxaEntregaConfigurada = parseFloat(config.taxaEntregaPadrao);
+            const elTaxaAdmin = document.getElementById('config-taxa-entrega');
+            if (elTaxaAdmin) elTaxaAdmin.value = taxaEntregaConfigurada.toFixed(2);
+        }
+    } catch(e) { console.error(e); }
+
     if (document.getElementById('product-grid')) {
         carregarProdutos();
         carregarAlertaPedidosOnline();
-        setInterval(carregarAlertaPedidosOnline, 5000); // Checa pedidos online a cada 5 segundos
+        setInterval(carregarAlertaPedidosOnline, 5000);
     }
     
     if (document.getElementById('lista-produtos')) {
@@ -104,6 +116,12 @@ function liberarPainelAdmin() {
     carregarMovimentacoesCaixa();
     atualizarTelaCaixa();
     carregarGraficosDashboard();
+    
+    const hojeStr = new Date().toISOString().split('T')[0];
+    const elIni = document.getElementById('data-inicio-filter');
+    const elFim = document.getElementById('data-fim-filter');
+    if (elIni && !elIni.value) elIni.value = hojeStr;
+    if (elFim && !elFim.value) elFim.value = hojeStr;
 }
 
 function fazerLogoutAdmin() {
@@ -113,6 +131,115 @@ function fazerLogoutAdmin() {
 }
 
 function sairParaCaixa() { window.location.href = "index.html"; }
+
+// NOVA FUNÇÃO NO ADMIN: SALVAR TAXA DE ENTREGA PADRÃO
+async function salvarTaxaEntregaAdmin() {
+    const novaTaxa = parseFloat(document.getElementById('config-taxa-entrega').value);
+    if (isNaN(novaTaxa) || novaTaxa < 0) { alert("⚠️ Digite um valor de taxa válido!"); return; }
+
+    try {
+        const res = await fetch('/api/config', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ taxaEntregaPadrao: novaTaxa })
+        });
+        if (res.ok) {
+            taxaEntregaConfigurada = novaTaxa;
+            alert(`✅ Sucesso! A taxa de entrega da loja foi alterada para R$ ${novaTaxa.toFixed(2)}.`);
+        }
+    } catch(e) { console.error(e); }
+}
+
+// ==========================================================================
+// MÁQUINA DO TEMPO (RELATÓRIO POR PERÍODO)
+// ==========================================================================
+async function gerarRelatorioPeriodo() {
+    const dataIniStr = document.getElementById('data-inicio-filter').value;
+    const dataFimStr = document.getElementById('data-fim-filter').value;
+
+    if (!dataIniStr || !dataFimStr) {
+        alert("⚠️ Por favor, selecione a Data Inicial e a Data Final no calendário para consultar!");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/orders');
+        const orders = await res.json();
+
+        const pedidosFiltrados = orders.filter(o => {
+            if (!o.data) return false;
+            const dataPed = o.data.split('T')[0];
+            return dataPed >= dataIniStr && dataPed <= dataFimStr;
+        });
+
+        const boxResumo = document.getElementById('resumo-periodo-box');
+        const lista = document.getElementById('lista-pedidos-periodo');
+        
+        boxResumo.style.display = 'block';
+        lista.innerHTML = '';
+
+        if (pedidosFiltrados.length === 0) {
+            boxResumo.innerHTML = `<div style="text-align: center; color: #d62828; font-weight: bold;">⚠️ Nenhuma venda encontrada no período de ${dataIniStr.split('-').reverse().join('/')} até ${dataFimStr.split('-').reverse().join('/')}.</div>`;
+            lista.innerHTML = '<div style="padding:15px; color:#868e96; text-align:center;">Sem dados para exibir.</div>';
+            return;
+        }
+
+        const vendasValidas = pedidosFiltrados.filter(o => o.status !== 'Cancelado');
+        const totalVendas = vendasValidas.reduce((acc, cur) => acc + cur.total, 0);
+        const vendasDinheiro = vendasValidas.filter(o => o.formaPagamento.includes('Dinheiro')).reduce((acc, cur) => acc + cur.total, 0);
+        const vendasPIX = vendasValidas.filter(o => o.formaPagamento.includes('PIX')).reduce((acc, cur) => acc + cur.total, 0);
+        const vendasCartao = vendasValidas.filter(o => o.formaPagamento.includes('Cartão')).reduce((acc, cur) => acc + cur.total, 0);
+        const totalEntrega = vendasValidas.reduce((acc, cur) => acc + (cur.taxaEntrega || 0), 0);
+        const totalCancelados = pedidosFiltrados.filter(o => o.status === 'Cancelado').length;
+
+        boxResumo.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <span style="font-size: 13px; color: #666; font-weight: bold;">Faturamento Total no Período:</span>
+                    <strong style="font-size: 24px; color: #2b9348; display: block; margin: 5px 0;">R$ ${totalVendas.toFixed(2)}</strong>
+                    <small style="color: #666; font-weight: bold;">✔ ${vendasValidas.length} pedidos concluídos | ❌ ${totalCancelados} cancelados</small>
+                </div>
+                <div style="font-size: 13px; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #dee2e6; min-width: 180px;">
+                    <div style="margin-bottom: 4px;">💵 Em Dinheiro: <b style="float: right;">R$ ${vendasDinheiro.toFixed(2)}</b></div>
+                    <div style="margin-bottom: 4px;">⚡ Em PIX: <b style="float: right;">R$ ${vendasPIX.toFixed(2)}</b></div>
+                    <div style="margin-bottom: 4px;">💳 Em Cartão: <b style="float: right;">R$ ${vendasCartao.toFixed(2)}</b></div>
+                    <div style="border-top: 1px dashed #ccc; margin-top: 6px; padding-top: 6px; color: #0077b6; font-weight: bold;">🛵 Taxas de Entrega: <span style="float: right;">R$ ${totalEntrega.toFixed(2)}</span></div>
+                </div>
+            </div>
+        `;
+
+        pedidosFiltrados.reverse().forEach(o => {
+            const div = document.createElement('div');
+            div.style = "padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;";
+            const lblEntrega = o.tipoPedido.includes('Entrega') ? '🛵' : '🏪';
+            
+            let statusBadge = `<span style="font-size:12px; font-weight:bold; color:${o.status === 'Pronto' ? '#2b9348' : '#ffc107'}">${(o.status || 'Pendente').toUpperCase()}</span>`;
+            let corTotal = '#2b9348';
+            let botoesAcao = `<button onclick="reimprimirCupomCliente(${o.id})" style="background:none; border:none; cursor:pointer; font-size:16px;" title="Reimprimir Cupom">🖨️</button>`;
+
+            if (o.status === 'Cancelado') {
+                const dataCancelado = o.canceladoEm ? ` às ${formatarDataHora(o.canceladoEm).split(' ')[1]}` : '';
+                const motivoStr = o.motivoCancelamento ? `<br><span style="color:#c92a2a; font-size:11px;"><b>Motivo:</b> ${o.motivoCancelamento}</span>` : '';
+                statusBadge = `<span style="font-size:11px; font-weight:bold; color:#dc3545;">⚠️ ESTORNADO POR: ${o.canceladoPor || 'Gerente'}${dataCancelado}</span>${motivoStr}`;
+                corTotal = '#868e96';
+            }
+
+            div.innerHTML = `
+                <div>
+                    <strong>Pedido #${o.id} ${lblEntrega} (${o.formaPagamento}) - ${statusBadge}</strong><br>
+                    <small style="color:#4a0072; font-weight:bold;">📅 ${formatarDataHora(o.data)} ${o.origem === 'Online' ? '🌐 ONLINE' : ''}</small><br>
+                    <small style="color:#666;">${o.itens.map(i => i.name).join(', ')}</small>
+                </div>
+                <div style="text-align:right;">
+                    <strong style="color:${corTotal}; display:block; font-size:15px;">R$ ${o.total.toFixed(2)}</strong>
+                    ${botoesAcao}
+                </div>
+            `;
+            lista.appendChild(div);
+        });
+
+    } catch(e) { console.error("Erro ao gerar relatório de período:", e); }
+}
 
 // ==========================================================================
 // MONITOR DE ALERTA DE PEDIDOS DO CARDÁPIO ONLINE (FRENTE DE CAIXA)
@@ -126,9 +253,8 @@ async function carregarAlertaPedidosOnline() {
     try {
         const res = await fetch('/api/orders');
         const orders = await res.json();
-        
-        // Procura pedidos que vieram da web e que ainda estão como PENDENTE ou A COMBINAR
-        const pendentesOnline = orders.filter(o => o.origem === 'Online' && o.formaPagamento.includes('A Combinar'));
+        // Acha pedidos online que ainda não foram aprovados (Pendente)
+        const pendentesOnline = orders.filter(o => o.origem === 'Online' && o.status === 'Pendente');
 
         if (pendentesOnline.length === 0) {
             barra.style.display = 'none';
@@ -142,7 +268,7 @@ async function carregarAlertaPedidosOnline() {
         pendentesOnline.forEach(o => {
             const btn = document.createElement('button');
             btn.style = "background: #2b9348; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);";
-            btn.innerText = `✔ Aprovar Pedido #${o.id} (${o.nomeClienteOnline || 'Cliente'}) - R$ ${o.total.toFixed(2)}`;
+            btn.innerText = `✔ Aprovar #${o.id} (${o.nomeClienteOnline || 'Cliente'}) - R$ ${o.total.toFixed(2)}`;
             btn.onclick = () => aprovarPedidoOnline(o);
             botoes.appendChild(btn);
         });
@@ -151,19 +277,32 @@ async function carregarAlertaPedidosOnline() {
 }
 
 async function aprovarPedidoOnline(pedido) {
-    const formaPagamento = prompt(`💰 Como o cliente "${pedido.nomeClienteOnline || 'Online'}" vai pagar este pedido (R$ ${pedido.total.toFixed(2)})?\n\nDigite: Dinheiro, PIX ou Cartão`, "PIX");
-    if (!formaPagamento) return;
+    // Agora o sistema já mostra a forma de pagamento que o cliente escolheu!
+    const confirmacao = confirm(
+        `🚨 APROVAR PEDIDO ONLINE #${pedido.id}\n` +
+        `-----------------------------------------\n` +
+        `👤 Cliente: ${pedido.nomeClienteOnline || 'Web'}\n` +
+        `🛵 Tipo: ${pedido.tipoPedido}\n` +
+        `💰 Total: R$ ${pedido.total.toFixed(2)} (Taxa de entrega R$ ${pedido.taxaEntrega.toFixed(2)} inclusa)\n` +
+        `💳 Pagamento escolhido: ${pedido.formaPagamento}\n` +
+        `-----------------------------------------\n` +
+        `Deseja confirmar a entrada deste pedido no caixa e liberar para a cozinha?`
+    );
+
+    if (!confirmacao) return;
 
     try {
+        // Ao aprovar, mudamos o status para Pronto para Preparo ou Pendente na cozinha
         const res = await fetch(`/api/orders/${pedido.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Pendente', formaPagamento: formaPagamento })
+            body: JSON.stringify({ status: 'Pendente' })
         });
         if (res.ok) {
-            alert(`✅ Pedido #${pedido.id} aprovado e confirmado no caixa com pagamento em "${formaPagamento}"!`);
+            alert(`✅ Pedido #${pedido.id} aprovado com sucesso! Já está no faturamento do caixa e na tela da cozinha!`);
             carregarAlertaPedidosOnline();
             atualizarTelaCaixa();
+            carregarPedidosCozinha();
         }
     } catch(e) { console.error(e); }
 }
@@ -241,14 +380,18 @@ function abrirModal(produto) {
 function fecharModal() { const modalDiv = document.getElementById('modal-produto'); if (modalDiv) modalDiv.style.display = 'none'; }
 
 function confirmarAdicao() {
+    const cremes = Array.from(document.querySelectorAll('input[name="creme"]:checked')).map(cb => cb.value);
     const coberturas = Array.from(document.querySelectorAll('input[name="cobertura"]:checked')).map(cb => cb.value);
     const acompanhamentos = Array.from(document.querySelectorAll('input[name="acompanhamento"]:checked')).map(cb => cb.value);
 
+    // TRAVAS NO CAIXA
+    if (cremes.length > 2) { alert("⚠️ Escolha no máximo 2 Cremes."); return; }
     if (coberturas.length > 2) { alert("⚠️ Escolha no máximo 2 Coberturas."); return; }
     if (acompanhamentos.length > 5) { alert("⚠️ Escolha no máximo 5 Acompanhamentos."); return; }
 
     let observacao = "";
-    if (coberturas.length > 0) observacao += `Coberturas: ${coberturas.join(', ')}`;
+    if (cremes.length > 0) observacao += `Cremes: ${cremes.join(', ')}`;
+    if (coberturas.length > 0) observacao += (observacao ? ' | ' : '') + `Cob: ${coberturas.join(', ')}`;
     if (acompanhamentos.length > 0) observacao += (observacao ? ' | ' : '') + `Acomps: ${acompanhamentos.join(', ')}`;
     if (!observacao) observacao = "Copos simples tradicional";
 
@@ -308,8 +451,13 @@ function fecharModalPagamento() { document.getElementById('modal-pagamento').sty
 function alternarTipoPedido() {
     const tipo = document.getElementById('pedido-tipo').value;
     const divTaxa = document.getElementById('div-taxa-entrega');
-    if (tipo === 'Entrega') divTaxa.style.display = 'block';
-    else { divTaxa.style.display = 'none'; document.getElementById('taxa-entrega').value = ''; }
+    if (tipo === 'Entrega') {
+        divTaxa.style.display = 'block';
+        document.getElementById('taxa-entrega').value = taxaEntregaConfigurada.toFixed(2);
+    } else { 
+        divTaxa.style.display = 'none'; 
+        document.getElementById('taxa-entrega').value = ''; 
+    }
     calcularTotalComEntrega();
 }
 
@@ -398,7 +546,7 @@ function enviarCupomWhatsApp() {
     let msg = `*🔮 MEU CANTINHO AÇAÍ* \n-----------------------------\n*COMPROVANTE DE COMPRA*\n*Pedido:* #${ultimoPedidoSalvo.id} (${ultimoPedidoSalvo.tipoPedido})\n*Data:* ${new Date(ultimoPedidoSalvo.data).toLocaleString('pt-BR')}\n-----------------------------\n`;
     ultimoPedidoSalvo.itens.forEach(i => { msg += `• *1x ${i.name}*\n  _${i.obs}_\n  R$ ${i.price.toFixed(2)}\n\n`; });
     msg += `-----------------------------\n`;
-    if (ultimoPedidoSalvo.tipoPedido === 'Entrega') msg += `*Taxa de Entrega:* R$ ${ultimoPedidoSalvo.taxaEntrega.toFixed(2)}\n`;
+    if (ultimoPedidoSalvo.tipoPedido.includes('Entrega')) msg += `*Taxa de Entrega:* R$ ${ultimoPedidoSalvo.taxaEntrega.toFixed(2)}\n`;
     msg += `*Forma de Pagto:* ${ultimoPedidoSalvo.formaPagamento}\n`;
     if (ultimoPedidoSalvo.formaPagamento === 'Dinheiro') msg += `*Valor Entregue:* R$ ${ultimoPedidoSalvo.valorRecebido.toFixed(2)}\n*Troco Devolvido:* R$ ${ultimoPedidoSalvo.troco.toFixed(2)}\n`;
     msg += `*VALOR TOTAL: R$ ${ultimoPedidoSalvo.total.toFixed(2)}*\n-----------------------------\n`;
@@ -466,6 +614,7 @@ async function carregarPedidosCozinha() {
                 <div>
                     <div class="pedido-topo"><span style="font-weight:bold; font-size:16px;">Comanda #${p.id} ${p.origem === 'Online' ? '🌐 ONLINE' : ''}</span><span class="${badgeClass}">${badgeTexto}</span></div>
                     <div style="font-size:13px; color:#868e96; margin-bottom:12px;">⏰ Recebido às: ${horaPedido} ${p.nomeClienteOnline ? `| Cliente: <b>${p.nomeClienteOnline}</b>` : ''}</div>
+                    <div style="background:#fff3cd; color:#856404; padding:6px 8px; border-radius:6px; font-size:13px; margin-bottom:10px; font-weight:bold;">💰 Pagamento: ${p.formaPagamento}</div>
                     <div class="pedido-corpo-itens">${itensHtml}</div>
                 </div>
                 <button class="btn-pronto" onclick="concluirPreparoCozinha(${p.id})">✔ CONCLUÍDO / PRONTO</button>
@@ -767,9 +916,9 @@ async function atualizarTelaCaixa() {
         const totalSuprimentos = movs.filter(m => m.data.startsWith(hoje) && m.tipo === 'suprimento').reduce((acc, cur) => acc + cur.valor, 0);
         const totalSangrias = movs.filter(m => m.data.startsWith(hoje) && m.tipo === 'sangria').reduce((acc, cur) => acc + cur.valor, 0);
 
-        const vendasDinheiro = ordHoje.filter(o => o.formaPagamento === 'Dinheiro').reduce((acc, cur) => acc + cur.total, 0);
-        const vendasPIX = ordHoje.filter(o => o.formaPagamento === 'PIX').reduce((acc, cur) => acc + cur.total, 0);
-        const vendasCartao = ordHoje.filter(o => o.formaPagamento === 'Cartão').reduce((acc, cur) => acc + cur.total, 0);
+        const vendasDinheiro = ordHoje.filter(o => o.formaPagamento.includes('Dinheiro')).reduce((acc, cur) => acc + cur.total, 0);
+        const vendasPIX = ordHoje.filter(o => o.formaPagamento.includes('PIX')).reduce((acc, cur) => acc + cur.total, 0);
+        const vendasCartao = ordHoje.filter(o => o.formaPagamento.includes('Cartão')).reduce((acc, cur) => acc + cur.total, 0);
         const totalEntrega = ordHoje.reduce((acc, cur) => acc + (cur.taxaEntrega || 0), 0);
 
         if (caixaAberto) {
@@ -852,9 +1001,9 @@ async function imprimirRelatorioCaixa() {
     const totalSuprimentos = movs.filter(m => m.data.startsWith(hoje) && m.tipo === 'suprimento').reduce((acc, cur) => acc + cur.valor, 0);
     const totalSangrias = movs.filter(m => m.data.startsWith(hoje) && m.tipo === 'sangria').reduce((acc, cur) => acc + cur.valor, 0);
     
-    const vendasDinheiro = ordHoje.filter(o => o.formaPagamento === 'Dinheiro').reduce((acc, cur) => acc + cur.total, 0);
-    const vendasPIX = ordHoje.filter(o => o.formaPagamento === 'PIX').reduce((acc, cur) => acc + cur.total, 0);
-    const vendasCartao = ordHoje.filter(o => o.formaPagamento === 'Cartão').reduce((acc, cur) => acc + cur.total, 0);
+    const vendasDinheiro = ordHoje.filter(o => o.formaPagamento.includes('Dinheiro')).reduce((acc, cur) => acc + cur.total, 0);
+    const vendasPIX = ordHoje.filter(o => o.formaPagamento.includes('PIX')).reduce((acc, cur) => acc + cur.total, 0);
+    const vendasCartao = ordHoje.filter(o => o.formaPagamento.includes('Cartão')).reduce((acc, cur) => acc + cur.total, 0);
     const totalEntrega = ordHoje.reduce((acc, cur) => acc + (cur.taxaEntrega || 0), 0);
     
     const JANELAPRINT = window.open('', '_blank', 'width=350,height=600');

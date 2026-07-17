@@ -610,5 +610,103 @@
     "status": "Pronto",
     "data": "2026-07-17T01:46:50.779Z",
     "pontosAtuais": 3
+  },
+  {
+    "id": 34,
+    "itens": [
+      {
+        "id": 5,
+        "name": "Açaí Copo 700ml",
+        "price": 34,
+        "obs": "Coberturas: Fini Dentaduras, Fini Bananas | Acomps: Gergelim torrado, Granola, Amendoim, Castanha de Caju, Flocos de Coco"
+      }
+    ],
+    "total": 34,
+    "formaPagamento": "A Combinar (Pedido Online)",
+    "valorRecebido": 34,
+    "troco": 0,
+    "tipoPedido": "Balcão (Pedido Online)",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84921794447",
+    "status": "Pronto",
+    "data": "2026-07-17T02:44:30.159Z",
+    "pontosAtuais": 1
+  },
+  {
+    "id": 35,
+    "itens": [
+      {
+        "id": 5,
+        "name": "Açaí Copo 700ml",
+        "price": 34,
+        "obs": "Cremes: Creme de Cupuaçu, Apenas Açaí Puro (Sem Creme) | Cob: Leite Condensado, Fini Dentaduras | Acomps: Gergelim torrado, Amendoim"
+      }
+    ],
+    "total": 34,
+    "formaPagamento": "Cartão",
+    "valorRecebido": 34,
+    "troco": 0,
+    "tipoPedido": "Entrega (Endereço: Rua Edite Leite Noronha 178, Betel)",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "origem": "Online",
+    "nomeClienteOnline": "Leandro",
+    "data": "2026-07-17T03:07:00.112Z",
+    "pontosAtuais": 4
+  },
+  {
+    "id": 36,
+    "itens": [
+      {
+        "id": 5,
+        "name": "Açaí Copo 700ml",
+        "price": 34,
+        "obs": "Cremes: Creme de Ninho, Apenas Açaí Puro (Sem Creme) | Cob: Leite Condensado, Calda de Chocolate | Acomps: Gergelim torrado, Granola, Amendoim, Castanha de Caju, Flocos de Coco"
+      }
+    ],
+    "total": 37,
+    "formaPagamento": "Dinheiro (Troco para: 100)",
+    "valorRecebido": 37,
+    "troco": 0,
+    "tipoPedido": "Entrega (Endereço: Rua Edite Leite Noronha, 178 Betel)",
+    "taxaEntrega": 3,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "origem": "Online",
+    "nomeClienteOnline": "Frederico",
+    "detalheTroco": "Troco para: 100",
+    "data": "2026-07-17T03:24:59.715Z",
+    "pontosAtuais": 5
+  },
+  {
+    "id": 37,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Cremes: Creme de Cupuaçu | Cob: Leite Condensado, Calda de Chocolate"
+      },
+      {
+        "id": 5,
+        "name": "Açaí Copo 700ml",
+        "price": 34,
+        "obs": "Cremes: Creme de Cupuaçu, Apenas Açaí Puro (Sem Creme) | Cob: Leite Condensado, Calda de Chocolate | Acomps: Gergelim torrado, Granola, Confete, Gotas de Chocolate"
+      }
+    ],
+    "total": 44,
+    "formaPagamento": "Dinheiro (Troco para: 50)",
+    "valorRecebido": 44,
+    "troco": 0,
+    "tipoPedido": "Balcão (Retirada Online)",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "origem": "Online",
+    "nomeClienteOnline": "Frederico",
+    "detalheTroco": "Troco para: 50",
+    "data": "2026-07-17T03:27:36.403Z",
+    "pontosAtuais": 6
   }
 ]

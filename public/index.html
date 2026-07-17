@@ -70,11 +70,28 @@
         </div>
     </div>
 
-    <!-- MODAL DE PERSONALIZAÇÃO -->
+    <!-- MODAL DE PERSONALIZAÇÃO (ATUALIZADO COM CREMES) -->
     <div id="modal-produto" class="modal-overlay">
         <div class="modal-box" style="max-width: 450px;">
             <h2 id="modal-titulo">Personalizar Produto</h2>
-            <div id="modal-conteudo" style="max-height: 65vh; overflow-y: auto; padding-right: 5px;">
+            <div id="modal-conteudo" style="max-height: 65vh; overflow-y: auto; padding-right: 5px; text-align: left;">
+                
+                <!-- SEÇÃO 1: CREMES -->
+                <div style="background: #fcf4ff; border: 1px solid #eeb4ff; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                    <label style="color: #4a0072; font-weight: bold; display: block; font-size: 14px; margin-bottom: 5px;">🍨 CREMES (Escolha até 2 para misturar):</label>
+                    <div class="checkbox-group" style="grid-template-columns: 1fr; gap: 6px;">
+                        <label><input type="checkbox" name="creme" value="Creme de Ninho"> Creme de Ninho</label>
+                        <label><input type="checkbox" name="creme" value="Creme de Morango"> Creme de Morango</label>
+                        <label><input type="checkbox" name="creme" value="Creme de Ovomaltine"> Creme de Ovomaltine</label>
+                        <label><input type="checkbox" name="creme" value="Creme de Maracujá"> Creme de Maracujá</label>
+                        <label><input type="checkbox" name="creme" value="Creme de Paçoca"> Creme de Paçoca</label>
+                        <label><input type="checkbox" name="creme" value="Creme de Nutella"> Creme de Nutella</label>
+                        <label><input type="checkbox" name="creme" value="Creme de Cupuaçu"> Creme de Cupuaçu</label>
+                        <label><input type="checkbox" name="creme" value="Apenas Açaí Puro (Sem Creme)"> ⚡ Apenas Açaí Puro (Sem Creme)</label>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 2: COBERTURAS -->
                 <label style="color: #4a0072; font-weight: bold; display: block; margin-bottom: 5px;">🍫 COBERTURAS (Escolha até 2):</label>
                 <div class="checkbox-group" style="margin-bottom: 15px;">
                     <label><input type="checkbox" name="cobertura" value="Leite Condensado"> Leite Condensado</label>
@@ -85,6 +102,7 @@
                     <label><input type="checkbox" name="cobertura" value="Fini Bananas"> Fini Bananas</label>
                 </div>
                 
+                <!-- SEÇÃO 3: ACOMPANHAMENTOS -->
                 <label style="color: #4a0072; font-weight: bold; display: block; margin-bottom: 5px;">🍓 ACOMPANHAMENTOS (Escolha até 5):</label>
                 <div class="checkbox-group" style="grid-template-columns: 1fr; gap: 6px;">
                     <label><input type="checkbox" name="acompanhamento" value="Gergelim torrado"> Gergelim torrado</label>

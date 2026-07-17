@@ -7,7 +7,7 @@
     "available": true,
     "usuarioAtividade": "Sócio A",
     "dataAtividade": "2026-07-16T23:43:53.897Z",
-    "estoque": 60
+    "estoque": 59
   },
   {
     "id": 3,
@@ -28,7 +28,8 @@
     "id": 5,
     "name": "Açaí Copo 700ml",
     "category": "Açaí",
-    "price": 34
+    "price": 34,
+    "estoque": 46
   },
   {
     "id": 6,

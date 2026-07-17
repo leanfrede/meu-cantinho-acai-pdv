@@ -99,6 +99,45 @@
                     </div>
                 </div>
 
+                <!-- MÁQUINA DO TEMPO -->
+                <div class="admin-card">
+                    <h2>📅 Máquina do Tempo (Faturamento por Período / Datas Passadas)</h2>
+                    <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; background: #fdf2fe; padding: 15px; border-radius: 8px; border: 1px solid #eeb4ff;">
+                        <div style="flex: 1; min-width: 140px;">
+                            <label style="font-size: 12px; font-weight: bold; color: #4a0072; display: block; margin-bottom: 4px;">Data Inicial:</label>
+                            <input type="date" id="data-inicio-filter" class="form-input">
+                        </div>
+                        <div style="flex: 1; min-width: 140px;">
+                            <label style="font-size: 12px; font-weight: bold; color: #4a0072; display: block; margin-bottom: 4px;">Data Final:</label>
+                            <input type="date" id="data-fim-filter" class="form-input">
+                        </div>
+                        <div style="align-self: flex-end;">
+                            <button onclick="gerarRelatorioPeriodo()" class="btn-add" style="background: #4a0072; padding: 11px 20px;">🔍 Consultar Período</button>
+                        </div>
+                    </div>
+
+                    <div id="resumo-periodo-box" style="display: none; background: white; padding: 15px; border-radius: 8px; border: 2px solid #2b9348; margin-bottom: 15px;"></div>
+                    <div id="lista-pedidos-periodo" class="log-container" style="max-height: 250px;">
+                        <div style="padding:15px; color:#868e96; text-align: center;">Selecione uma Data Inicial e Final acima e clique em Consultar.</div>
+                    </div>
+                </div>
+
+                <!-- NOVA SEÇÃO: CONFIGURAÇÕES DA LOJA / TAXA DE ENTREGA -->
+                <div class="admin-card">
+                    <h2>⚙️ Configurações da Loja / Taxa de Entrega</h2>
+                    <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b8daff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <strong style="color: #004085; display: block;">🛵 Taxa de Entrega Padrão (Motoboy)</strong>
+                            <small style="color: #555;">Este é o valor fixo somado automaticamente aos pedidos do Cardápio Online.</small>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="font-weight: bold; font-size: 16px;">R$</span>
+                            <input type="number" id="config-taxa-entrega" class="form-input" style="width: 100px; font-weight: bold; font-size: 16px; text-align: center;" step="0.50" value="3.00">
+                            <button onclick="salvarTaxaEntregaAdmin()" class="btn-add" style="background: #0077b6;">💾 Salvar Taxa</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="admin-card">
                     <h2>🍔 Adicionar Novo Produto ao Cardápio</h2>
                     <div class="form-grid">
