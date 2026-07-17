@@ -102,3 +102,32 @@ body {
 .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
 .btn-modal-cancelar { flex: 1; background: #dee2e6; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 .btn-modal-confirmar { flex: 1; background: #4a0072; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+/* =========================================================
+   RESPONSIVIDADE: ADAPTAÇÃO PARA CELULARES E TABLETS 
+========================================================= */
+@media (max-width: 850px) {
+    /* Ajusta o cabeçalho roxo para não cortar */
+    .top-bar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 10px;
+    }
+    .top-bar div {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    /* Coloca o Cardápio e o Carrinho um embaixo do outro */
+    .main-container {
+        grid-template-columns: 1fr; 
+        padding: 10px;
+    }
+    
+    /* Deixa o carrinho fluir naturalmente na página */
+    .cart-section {
+        position: relative;
+        top: 0;
+        margin-top: 20px;
+        max-height: none;
+    }
+}

@@ -253,5 +253,341 @@
     "taxaEntrega": 3,
     "status": "Pronto",
     "data": "2026-07-14T03:16:00.462Z"
+  },
+  {
+    "id": 17,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Fini Dentaduras | Acomps: Gergelim torrado"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "status": "Pronto",
+    "data": "2026-07-16T21:52:02.261Z"
+  },
+  {
+    "id": 18,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Leite Condensado, Calda de Chocolate | Acomps: Granola, Amendoim, Castanha de Caju"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "Cartão",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "status": "Pronto",
+    "data": "2026-07-16T21:53:08.734Z"
+  },
+  {
+    "id": 19,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Leite Condensado | Acomps: Gergelim torrado"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:02:57.507Z",
+    "pontosAtuais": 1
+  },
+  {
+    "id": 20,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Fini Dentaduras"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "Cartão",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:03:16.795Z",
+    "pontosAtuais": 2
+  },
+  {
+    "id": 21,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Fini Dentaduras | Acomps: Gergelim torrado"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:03:30.951Z",
+    "pontosAtuais": 3
+  },
+  {
+    "id": 22,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Acomps: Granola"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:03:44.683Z",
+    "pontosAtuais": 4
+  },
+  {
+    "id": 23,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Acomps: Gergelim torrado"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:03:57.025Z",
+    "pontosAtuais": 5
+  },
+  {
+    "id": 24,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Acomps: Granola"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "Cartão",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:04:08.578Z",
+    "pontosAtuais": 6
+  },
+  {
+    "id": 25,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Acomps: Flocos de Coco"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:04:20.496Z",
+    "pontosAtuais": 7
+  },
+  {
+    "id": 26,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Fini Dentaduras | Acomps: Gergelim torrado"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:04:40.614Z",
+    "pontosAtuais": 8
+  },
+  {
+    "id": 27,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Acomps: Amendoim"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:04:50.904Z",
+    "pontosAtuais": 9
+  },
+  {
+    "id": 28,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Acomps: Granola"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": null,
+    "status": "Pronto",
+    "data": "2026-07-16T22:05:00.354Z"
+  },
+  {
+    "id": 29,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Acomps: Castanha de Caju"
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:05:43.753Z",
+    "pontosAtuais": 10
+  },
+  {
+    "id": 30,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Fini Dentaduras | Acomps: Gergelim torrado, Amendoim"
+      }
+    ],
+    "total": 13,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 50,
+    "troco": 37,
+    "tipoPedido": "Entrega",
+    "taxaEntrega": 3,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:55:25.467Z",
+    "pontosAtuais": 1
+  },
+  {
+    "id": 31,
+    "itens": [
+      {
+        "id": 3,
+        "name": "Açaí Copo 300ml",
+        "price": 16,
+        "obs": "Coberturas: Leite Condensado, Fini Dentaduras | Acomps: Gergelim torrado, Castanha de Caju"
+      }
+    ],
+    "total": 16,
+    "formaPagamento": "PIX",
+    "valorRecebido": 16,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "data": "2026-07-16T22:56:49.113Z",
+    "pontosAtuais": 2
+  },
+  {
+    "id": 32,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Leite Condensado, Calda de Chocolate"
+      },
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Coberturas: Leite Condensado, Calda de Chocolate"
+      }
+    ],
+    "total": 20,
+    "formaPagamento": "PIX",
+    "valorRecebido": 20,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": null,
+    "status": "Pendente",
+    "data": "2026-07-16T23:40:54.686Z"
   }
 ]

@@ -5,8 +5,9 @@
     "category": "Açaí",
     "price": 10,
     "available": true,
-    "usuarioAtividade": "Sócio B",
-    "dataAtividade": "2026-07-14T00:10:20.126Z"
+    "usuarioAtividade": "Sócio A",
+    "dataAtividade": "2026-07-16T23:43:53.897Z",
+    "estoque": 61
   },
   {
     "id": 3,

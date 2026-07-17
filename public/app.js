@@ -12,7 +12,10 @@ let ultimoPedidoSalvo = null;
 let caixaAberto = localStorage.getItem('caixa_aberto') === 'true';
 let fundoDeTroco = parseFloat(localStorage.getItem('caixa_fundo')) || 0;
 
-// CONFIGURAÇÃO DOS DOIS SÓCIOS E SEUS PINS INDIVIDUAIS
+let chartInstHoras = null;
+let chartInstProdutos = null;
+let chartInstAdicionais = null;
+
 const DICIONARIO_SOCIOS = {
     "1111": "Sócio A",
     "2222": "Sócio B"
@@ -23,11 +26,7 @@ function formatarDataHora(isoString) {
     if (!isoString) return "";
     const d = new Date(isoString);
     return d.toLocaleString('pt-BR', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric', 
-        hour: '2-digit', 
-        minute: '2-digit' 
+        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' 
     });
 }
 
@@ -69,9 +68,7 @@ function digitarPin(numero) {
     pinDigitado += numero;
     document.getElementById('pin-visor').innerText = "•".repeat(pinDigitado.length);
 
-    if (pinDigitado.length === 4) {
-        setTimeout(verificarPin, 200);
-    }
+    if (pinDigitado.length === 4) setTimeout(verificarPin, 200);
 }
 
 function limparPin() {
@@ -102,6 +99,7 @@ function liberarPainelAdmin() {
     carregarHistoricoVendas();
     carregarMovimentacoesCaixa();
     atualizarTelaCaixa();
+    carregarGraficosDashboard();
 }
 
 function fazerLogoutAdmin() {
@@ -113,11 +111,11 @@ function fazerLogoutAdmin() {
 function sairParaCaixa() { window.location.href = "index.html"; }
 
 // ==========================================================================
-// FRENTE DE CAIXA (VENDAS)
+// FRENTE DE CAIXA (VENDAS COM ESTOQUE INTELIGENTE)
 // ==========================================================================
 async function carregarProdutos() {
     try {
-        const response = await fetch('http://localhost:3000/api/products');
+        const response = await fetch('/api/products');
         produtosTodos = await response.json();
         renderizarProdutos();
     } catch (error) { console.error("Erro ao carregar produtos:", error); }
@@ -144,14 +142,21 @@ function renderizarProdutos() {
     produtosFiltrados.forEach(p => {
         const btn = document.createElement('button');
         btn.className = 'produto-btn';
-        const disponivel = p.available !== false;
+        const estoqueAtual = p.estoque !== undefined ? p.estoque : 50;
+        const disponivel = p.available !== false && estoqueAtual > 0;
 
         if (!disponivel) {
             btn.style.opacity = '0.45'; btn.style.cursor = 'not-allowed'; btn.style.border = '2px dashed #dc3545';
-            btn.innerHTML = `<span>${p.name}<br><small style="color:#dc3545; font-weight:bold; font-size:11px;">⚠️ ESGOTADO</small></span><span class="price-tag" style="background:#6c757d; color:white;">R$ ${p.price.toFixed(2)}</span>`;
-            btn.onclick = () => alert(`⚠️ Desculpe! O ingrediente ou tamanho "${p.name}" acabou no estoque.`);
+            btn.innerHTML = `<span>${p.name}<br><small style="color:#dc3545; font-weight:bold; font-size:11px;">⚠️ ESGOTADO (0 un.)</small></span><span class="price-tag" style="background:#6c757d; color:white;">R$ ${p.price.toFixed(2)}</span>`;
+            btn.onclick = () => alert(`⚠️ Desculpe! O item "${p.name}" acabou no estoque (0 unidades restantes). Peça reposição ao gerente!`);
         } else {
-            btn.innerHTML = `<span>${p.name}</span><span class="price-tag">R$ ${p.price.toFixed(2)}</span>`;
+            // ALERTA DE ESTOQUE BAIXO (≤ 5 unidades)
+            let alertaEstoque = `<small style="color:#868e96; font-size:11px; display:block; margin-top:3px;">📦 Estoque: ${estoqueAtual} un.</small>`;
+            if (estoqueAtual <= 5) {
+                alertaEstoque = `<small style="color:#d62828; font-weight:bold; font-size:11px; display:block; margin-top:3px; background:#ffe5d9; padding:2px 4px; border-radius:4px;">⚠️ ÚLTIMAS ${estoqueAtual} UNIDADES!</small>`;
+            }
+
+            btn.innerHTML = `<span>${p.name} ${alertaEstoque}</span><span class="price-tag">R$ ${p.price.toFixed(2)}</span>`;
             btn.onclick = () => abrirModal(p);
         }
         grid.appendChild(btn);
@@ -167,7 +172,6 @@ function filtrarCategoria(categoria) {
     renderizarProdutos();
 }
 
-// O MONTADOR (MODAL DE PERSONALIZAÇÃO)
 function abrirModal(produto) {
     produtoSendoConfigurado = produto;
     const modalTitulo = document.getElementById('modal-titulo');
@@ -234,6 +238,11 @@ function finalizarVenda() {
     document.getElementById('pagamento-recebido').value = '';
     document.getElementById('pagamento-troco').innerText = 'R$ 0.00';
     document.getElementById('div-calculo-troco').style.display = 'block';
+    
+    document.getElementById('telefone-fidelidade').value = '';
+    document.getElementById('status-fidelidade').innerText = 'Digite o número para checar os pontos...';
+    document.getElementById('status-fidelidade').style.color = '#4a0072';
+
     document.getElementById('modal-pagamento').style.display = 'flex';
 }
 
@@ -269,11 +278,36 @@ function calcularTroco() {
     else { elTroco.innerText = `R$ ${troco.toFixed(2)}`; elTroco.style.color = "#2b8a3e"; }
 }
 
+async function verificarFidelidade() {
+    const tel = document.getElementById('telefone-fidelidade').value.replace(/\D/g, '');
+    if(tel.length < 10) {
+        alert("⚠️ Digite um telefone válido com DDD.");
+        return;
+    }
+    try {
+        const res = await fetch(`/api/clientes/${tel}`);
+        const data = await res.json();
+        const numPedidos = data.pedidos || 0;
+        const divStatus = document.getElementById('status-fidelidade');
+        
+        if(numPedidos >= 9) {
+            divStatus.innerHTML = `🎉 UAU! Este é o 10º pedido! O cliente GANHOU o Açaí de 300ml!`;
+            divStatus.style.color = '#d62828';
+        } else {
+            divStatus.innerHTML = `🌟 O cliente já tem ${numPedidos} pedido(s) salvo(s). Faltam ${10 - numPedidos} para o prêmio.`;
+            divStatus.style.color = '#2b9348';
+        }
+    } catch(e) { console.error(e); }
+}
+
 async function confirmarVendaComPagamento() {
     const metodo = document.getElementById('pagamento-metodo').value;
     const recebido = parseFloat(document.getElementById('pagamento-recebido').value) || 0;
     const tipoPed = document.getElementById('pedido-tipo').value;
     const taxaPed = parseFloat(document.getElementById('taxa-entrega').value) || 0;
+    
+    const telefoneFidelidadeRaw = document.getElementById('telefone-fidelidade').value.replace(/\D/g, '');
+    const telefoneFidelidadeFinal = telefoneFidelidadeRaw.length >= 10 ? telefoneFidelidadeRaw : null;
 
     if (metodo === 'Dinheiro' && recebido < totalVendaAtual) { alert("⚠️ O valor entregue é insuficiente!"); return; }
 
@@ -281,16 +315,19 @@ async function confirmarVendaComPagamento() {
     const dadosVenda = {
         itens: carrinho, total: totalVendaAtual, formaPagamento: metodo,
         valorRecebido: metodo === 'Dinheiro' ? recebido : totalVendaAtual, troco: troco,
-        tipoPedido: tipoPed, taxaEntrega: taxaPed, data: new Date().toISOString()
+        tipoPedido: tipoPed, taxaEntrega: taxaPed, clienteFidelidade: telefoneFidelidadeFinal, data: new Date().toISOString()
     };
 
     try {
-        const response = await fetch('http://localhost:3000/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosVenda) });
+        const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosVenda) });
         if (response.ok) {
             ultimoPedidoSalvo = await response.json();
             carrinho = []; atualizarCarrinhoUI(); fecharModalPagamento();
-            document.getElementById('whatsapp-cliente').value = '';
+            document.getElementById('whatsapp-cliente').value = telefoneFidelidadeFinal ? telefoneFidelidadeFinal : '';
             document.getElementById('modal-sucesso').style.display = 'flex';
+            
+            // Re-renderiza para atualizar os estoques na tela na mesma hora!
+            carregarProdutos();
         }
     } catch (error) { console.error(error); }
 }
@@ -309,7 +346,13 @@ function enviarCupomWhatsApp() {
     if (ultimoPedidoSalvo.tipoPedido === 'Entrega') msg += `*Taxa de Entrega:* R$ ${ultimoPedidoSalvo.taxaEntrega.toFixed(2)}\n`;
     msg += `*Forma de Pagto:* ${ultimoPedidoSalvo.formaPagamento}\n`;
     if (ultimoPedidoSalvo.formaPagamento === 'Dinheiro') msg += `*Valor Entregue:* R$ ${ultimoPedidoSalvo.valorRecebido.toFixed(2)}\n*Troco Devolvido:* R$ ${ultimoPedidoSalvo.troco.toFixed(2)}\n`;
-    msg += `*VALOR TOTAL: R$ ${ultimoPedidoSalvo.total.toFixed(2)}*\n-----------------------------\n_Obrigado pela preferência! Volte sempre!_ ✨🍧`;
+    msg += `*VALOR TOTAL: R$ ${ultimoPedidoSalvo.total.toFixed(2)}*\n-----------------------------\n`;
+    
+    if (ultimoPedidoSalvo.pontosAtuais) {
+        msg += `🎁 *CLUBE FIDELIDADE:*\nVocê tem *${ultimoPedidoSalvo.pontosAtuais}* pedido(s).\nComplete 10 e ganhe um Açaí 300ml!\n-----------------------------\n`;
+    }
+
+    msg += `_Obrigado pela preferência! Volte sempre!_ ✨🍧`;
     window.open(`https://api.whatsapp.com/send?phone=${fone}&text=${encodeURIComponent(msg)}`, '_blank');
 }
 
@@ -323,12 +366,8 @@ async function registrarMovimentacao(tipo) {
     const socioResponsavel = sessionStorage.getItem('admin_usuario') || 'Balcão';
 
     try {
-        await fetch('http://localhost:3000/api/caixa', { 
-            method: 'POST', 
-            headers: { 
-                'Content-Type': 'application/json',
-                'X-Usuario': socioResponsavel
-            }, 
+        await fetch('/api/caixa', { 
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Usuario': socioResponsavel }, 
             body: JSON.stringify({ tipo, valor, motivo, data: new Date().toISOString() }) 
         });
         alert(`✅ Registrado com sucesso!`);
@@ -344,9 +383,8 @@ async function carregarPedidosCozinha() {
     if (!painel) return;
 
     try {
-        const response = await fetch('http://localhost:3000/api/orders');
+        const response = await fetch('/api/orders');
         const pedidos = await response.json();
-        
         const hoje = new Date().toISOString().split('T')[0];
         const filaPendente = pedidos.filter(o => o.data.startsWith(hoje) && o.status === 'Pendente');
 
@@ -384,40 +422,130 @@ async function carregarPedidosCozinha() {
 
 async function concluirPreparoCozinha(id) {
     try {
-        const response = await fetch(`http://localhost:3000/api/orders/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'Pronto' }) });
+        const response = await fetch(`/api/orders/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'Pronto' }) });
         if (response.ok) carregarPedidosCozinha();
     } catch (e) { console.error(e); }
 }
 
 // ==========================================================================
-// PAINEL ADMINISTRATIVO AUDITADO (AUDITORIA POR SÓCIO COM DATA E HORA)
+// MÓDULO INTELIGENTE: DASHBOARD DE GRÁFICOS (CHART.JS)
+// ==========================================================================
+async function carregarGraficosDashboard() {
+    try {
+        const res = await fetch('/api/orders');
+        const orders = await res.json();
+        const vendasValidas = orders.filter(o => o.status !== 'Cancelado');
+
+        let contagemHoras = {};
+        let contagemProdutos = {};
+        let contagemAdicionais = {};
+
+        vendasValidas.forEach(o => {
+            let dataOrder = new Date(o.data);
+            let hora = dataOrder.getHours() + "h";
+            contagemHoras[hora] = (contagemHoras[hora] || 0) + 1;
+
+            o.itens.forEach(item => {
+                contagemProdutos[item.name] = (contagemProdutos[item.name] || 0) + 1;
+
+                if (item.obs && item.obs !== "Copos simples tradicional") {
+                    let partes = item.obs.split('|'); 
+                    partes.forEach(parte => {
+                        let pedacos = parte.split(':'); 
+                        if (pedacos.length > 1) {
+                            let ingredientes = pedacos[1].split(',');
+                            ingredientes.forEach(ing => {
+                                let nomeLimpo = ing.trim();
+                                if (nomeLimpo) contagemAdicionais[nomeLimpo] = (contagemAdicionais[nomeLimpo] || 0) + 1;
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        const getTopRanking = (obj, limite) => Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, limite);
+        const topProdutos = getTopRanking(contagemProdutos, 5); 
+        const topAdicionais = getTopRanking(contagemAdicionais, 7); 
+        const horasOrdenadas = Object.entries(contagemHoras).sort((a, b) => parseInt(a[0]) - parseInt(b[0])); 
+
+        if (chartInstHoras) chartInstHoras.destroy();
+        const ctxH = document.getElementById('graficoHoras');
+        if (ctxH) {
+            chartInstHoras = new Chart(ctxH, {
+                type: 'line',
+                data: {
+                    labels: horasOrdenadas.map(x => x[0]),
+                    datasets: [{ label: 'Pedidos por Hora', data: horasOrdenadas.map(x => x[1]), borderColor: '#4a0072', backgroundColor: 'rgba(74, 0, 114, 0.1)', fill: true, tension: 0.3 }]
+                }
+            });
+        }
+
+        if (chartInstProdutos) chartInstProdutos.destroy();
+        const ctxP = document.getElementById('graficoProdutos');
+        if (ctxP) {
+            chartInstProdutos = new Chart(ctxP, {
+                type: 'doughnut',
+                data: {
+                    labels: topProdutos.map(x => x[0]),
+                    datasets: [{ data: topProdutos.map(x => x[1]), backgroundColor: ['#4a0072', '#0077b6', '#2b9348', '#ffc107', '#d62828'] }]
+                }
+            });
+        }
+
+        if (chartInstAdicionais) chartInstAdicionais.destroy();
+        const ctxA = document.getElementById('graficoAdicionais');
+        if (ctxA) {
+            chartInstAdicionais = new Chart(ctxA, {
+                type: 'bar',
+                data: {
+                    labels: topAdicionais.map(x => x[0]),
+                    datasets: [{ label: 'Vezes escolhido', data: topAdicionais.map(x => x[1]), backgroundColor: '#0077b6' }]
+                }
+            });
+        }
+
+    } catch(e) { console.error("Erro ao carregar Dashboard:", e); }
+}
+
+// ==========================================================================
+// PAINEL ADMINISTRATIVO COM REPOSIÇÃO DE ESTOQUE
 // ==========================================================================
 async function carregarProdutosAdmin() {
     const lista = document.getElementById('lista-produtos');
     if (!lista) return;
     try {
-        const response = await fetch('http://localhost:3000/api/products');
+        const response = await fetch('/api/products');
         const produtos = await response.json();
         lista.innerHTML = '';
         produtos.forEach(p => {
-            const disponivel = p.available !== false;
+            const estoqueAtual = p.estoque !== undefined ? p.estoque : 50;
+            const disponivel = p.available !== false && estoqueAtual > 0;
             const statusTexto = disponivel ? '🟢 Ativo' : '🔴 Esgotado';
             const statusCor = disponivel ? '#2b9348' : '#dc3545';
             const div = document.createElement('div');
             
             const dataStr = p.dataAtividade ? ` em ${formatarDataHora(p.dataAtividade)}` : '';
-            const responsavelStr = p.usuarioAtividade ? `(Modificado por: ${p.usuarioAtividade}${dataStr})` : '';
+            const responsavelStr = p.usuarioAtividade ? `(Por: ${p.usuarioAtividade}${dataStr})` : '';
+
+            // Cor de destaque para o estoque lá no admin
+            let corEstoque = '#2b9348';
+            if (estoqueAtual <= 5) corEstoque = '#d62828';
 
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
                     <div>
                         <strong>${p.name}</strong> <span style="font-size:11px; background:#eeb4ff; padding:2px 6px; border-radius:10px;">${p.category}</span>
-                        <div style="font-size:12px; color:#666;">R$ ${p.price.toFixed(2)} <br><span style="color:#0077b6; font-weight:bold; font-size:11px;">${responsavelStr}</span></div>
+                        <div style="font-size:12px; color:#666;">
+                            R$ ${p.price.toFixed(2)} | <strong style="color:${corEstoque};">Estoque: ${estoqueAtual} un.</strong>
+                            <br><span style="color:#0077b6; font-weight:bold; font-size:11px;">${responsavelStr}</span>
+                        </div>
                     </div>
                     <div style="display:flex; gap:6px; align-items:center;">
-                        <button onclick="alternarStatusProduto(${p.id}, ${disponivel})" style="background:${statusCor}; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">${statusTexto}</button>
-                        <button onclick="editarProduto(${p.id}, '${p.name}', ${p.price})" style="background:#ffc107; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">✏️</button>
-                        <button onclick="excluirProduto(${p.id})" style="background:#dc3545; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">🗑️</button>
+                        <button onclick="reporEstoque(${p.id}, '${p.name}')" style="background:#0077b6; color:white; border:none; padding:6px 10px; border-radius:4px; font-weight:bold; cursor:pointer;" title="Chegou mercadoria nova?">📦 Repor</button>
+                        <button onclick="alternarStatusProduto(${p.id}, ${disponivel})" style="background:${statusCor}; color:white; border:none; padding:6px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">${statusTexto}</button>
+                        <button onclick="editarProduto(${p.id}, '${p.name}', ${p.price})" style="background:#ffc107; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">✏️</button>
+                        <button onclick="excluirProduto(${p.id})" style="background:#dc3545; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer;">🗑️</button>
                     </div>
                 </div>`;
             lista.appendChild(div);
@@ -425,14 +553,29 @@ async function carregarProdutosAdmin() {
     } catch (e) { console.error(e); }
 }
 
+// NOVA FUNÇÃO: ADICIONAR MERCADORIA (REPOSIÇÃO)
+async function reporEstoque(id, nomeProduto) {
+    const qtdStr = prompt(`📦 Reposição de Estoque para: "${nomeProduto}"\n\nQuantas unidades extras chegaram da rua/fornecedor?`);
+    if (!qtdStr) return;
+    const qtd = parseInt(qtdStr);
+    if (isNaN(qtd) || qtd <= 0) { alert("⚠️ Digite uma quantidade válida!"); return; }
+
+    try {
+        const response = await fetch(`/api/products/${id}`, { 
+            method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Usuario': sessionStorage.getItem('admin_usuario') }, 
+            body: JSON.stringify({ adicionarEstoque: qtd }) 
+        });
+        if (response.ok) {
+            alert(`✅ Sucesso! +${qtd} unidades somadas ao estoque de "${nomeProduto}".`);
+            carregarProdutosAdmin();
+        }
+    } catch (error) { console.error(error); }
+}
+
 async function alternarStatusProduto(id, statusAtual) {
     try {
-        const response = await fetch(`http://localhost:3000/api/products/${id}`, { 
-            method: 'PUT', 
-            headers: { 
-                'Content-Type': 'application/json',
-                'X-Usuario': sessionStorage.getItem('admin_usuario')
-            }, 
+        const response = await fetch(`/api/products/${id}`, { 
+            method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Usuario': sessionStorage.getItem('admin_usuario') }, 
             body: JSON.stringify({ available: !statusAtual }) 
         });
         if (response.ok) carregarProdutosAdmin();
@@ -443,7 +586,7 @@ async function carregarHistoricoVendas() {
     const lista = document.getElementById('historico-vendas');
     if (!lista) return;
     try {
-        const res = await fetch('http://localhost:3000/api/orders');
+        const res = await fetch('/api/orders');
         const orders = await res.json();
         const hoje = new Date().toISOString().split('T')[0];
         const ordHoje = orders.filter(o => o.data.startsWith(hoje));
@@ -458,10 +601,7 @@ async function carregarHistoricoVendas() {
             
             let statusBadge = `<span style="font-size:12px; font-weight:bold; color:${o.status === 'Pronto' ? '#2b9348' : '#ffc107'}">${(o.status || 'Pendente').toUpperCase()}</span>`;
             let corTotal = '#2b9348';
-            let botoesAcao = `
-                <button onclick="reimprimirCupomCliente(${o.id})" style="background:none; border:none; cursor:pointer; font-size:14px;">🖨️</button>
-                <button onclick="cancelarVendaAdmin(${o.id})" style="background:none; border:none; cursor:pointer; font-size:14px; margin-left:8px;">🗑️</button>
-            `;
+            let botoesAcao = `<button onclick="reimprimirCupomCliente(${o.id})" style="background:none; border:none; cursor:pointer; font-size:14px;">🖨️</button> <button onclick="cancelarVendaAdmin(${o.id})" style="background:none; border:none; cursor:pointer; font-size:14px; margin-left:8px;" title="Estornar Venda">🗑️</button>`;
 
             if (o.status === 'Cancelado') {
                 const dataCancelado = o.canceladoEm ? ` às ${formatarDataHora(o.canceladoEm).split(' ')[1]}` : '';
@@ -486,62 +626,47 @@ async function carregarHistoricoVendas() {
     } catch (e) { console.error(e); }
 }
 
-// ATUALIZAÇÃO: Impressão do Cupom totalmente em NEGRITO PRETO (Para Impressoras Térmicas)
 async function reimprimirCupomCliente(id) {
     try {
-        const res = await fetch('http://localhost:3000/api/orders');
+        const res = await fetch('/api/orders');
         const orders = await res.json();
         const o = orders.find(order => order.id === id);
         if (!o) return;
 
         const JANELAPRINT = window.open('', '_blank', 'width=350,height=600');
         let itensHtml = '';
-        
-        // Tudo envelopado em <strong> para forçar a impressora térmica a não falhar a cor
-        o.itens.forEach(i => { 
-            itensHtml += `
-            <div style="margin-bottom:8px;">
-                <strong>1x ${i.name}</strong><br>
-                <strong>${i.obs}</strong><br>
-                <strong>R$ ${i.price.toFixed(2)}</strong>
-            </div>`; 
-        });
+        o.itens.forEach(i => { itensHtml += `<div style="margin-bottom:8px;"><strong>1x ${i.name}</strong><br><strong>${i.obs}</strong><br><strong>R$ ${i.price.toFixed(2)}</strong></div>`; });
 
         JANELAPRINT.document.write(`
             <html><body style="font-family:monospace;width:280px;font-size:13px;margin:10px; color:#000;">
-            <center><strong>MEU CANTINHO AÇAÍ</strong><br><strong>COMPROVANTE DE PEDIDO</strong><br><strong>Pedido #${o.id} (${o.tipoPedido})</strong><br><strong>${new Date(o.data).toLocaleString('pt-BR')}</strong></center>
-            <hr style="border-top:1px dashed #000;">
-            ${itensHtml}
-            <hr style="border-top:1px dashed #000;">
+            <center><strong>MEU CANTINHO AÇAÍ</strong><br><strong>COMPROVANTE DE PEDIDO</strong><br><strong>Pedido #${o.id} (${o.tipoPedido})</strong><br><strong>${new Date(o.data).toLocaleString('pt-BR')}</strong></center><hr style="border-top:1px dashed #000;">
+            ${itensHtml}<hr style="border-top:1px dashed #000;">
             ${o.tipoPedido === 'Entrega' ? `<strong>Taxa Entrega: R$ ${o.taxaEntrega.toFixed(2)}</strong><br>` : ''}
             <strong>FORMA PAGTO: ${o.formaPagamento}</strong><br>
             <strong>STATUS: ${(o.status || '').toUpperCase()} ${o.status === 'Cancelado' ? `por ${o.canceladoPor}` : ''}</strong><br>
-            <strong>VALOR TOTAL: R$ ${o.total.toFixed(2)}</strong>
-            <script>window.onload = function() { window.print(); }</script></body></html>
+            <strong>VALOR TOTAL: R$ ${o.total.toFixed(2)}</strong><script>window.onload = function() { window.print(); }</script></body></html>
         `);
         JANELAPRINT.document.close();
     } catch (e) { console.error(e); }
 }
 
 async function cancelarVendaAdmin(id) {
-    if (!confirm("⚠️ Tem certeza que deseja CANCELAR e estornar este pedido? Os valores contábeis serão corrigidos na hora.")) return;
-    
+    if (!confirm("⚠️ Tem certeza que deseja CANCELAR e estornar este pedido? Os itens vendidos VOLTARÃO AUTOMATICAMENTE para o estoque.")) return;
     const motivo = prompt("📝 Digite obrigatoriamente o motivo/observação deste cancelamento:");
     if (motivo === null) return; 
-    if (motivo.trim() === "") {
-        alert("❌ Erro: O motivo do cancelamento não pode ficar em branco!");
-        return;
-    }
+    if (motivo.trim() === "") { alert("❌ Erro: O motivo do cancelamento não pode ficar em branco!"); return; }
 
     try {
-        const response = await fetch(`http://localhost:3000/api/orders/${id}`, { 
-            method: 'DELETE',
-            headers: {
-                'X-Usuario': sessionStorage.getItem('admin_usuario'),
-                'X-Motivo': motivo 
-            }
+        const response = await fetch(`/api/orders/${id}`, { 
+            method: 'DELETE', headers: { 'X-Usuario': sessionStorage.getItem('admin_usuario'), 'X-Motivo': motivo }
         });
-        if (response.ok) { alert("✅ Venda cancelada e estornada!"); carregarHistoricoVendas(); atualizarTelaCaixa(); }
+        if (response.ok) { 
+            alert("✅ Venda cancelada e estornada! Os itens foram devolvidos ao estoque contábil."); 
+            carregarHistoricoVendas(); 
+            atualizarTelaCaixa(); 
+            carregarGraficosDashboard();
+            carregarProdutosAdmin(); // Atualiza a contagem visual na hora
+        }
     } catch (e) { console.error(e); }
 }
 
@@ -549,7 +674,7 @@ async function carregarMovimentacoesCaixa() {
     const listaAlvo = document.getElementById('extrato-caixa');
     if (!listaAlvo) return;
     try {
-        const res = await fetch('http://localhost:3000/api/caixa');
+        const res = await fetch('/api/caixa');
         const movs = await res.json();
         const hoje = new Date().toISOString().split('T')[0];
         const movHoje = movs.filter(m => m.data.startsWith(hoje));
@@ -561,7 +686,6 @@ async function carregarMovimentacoesCaixa() {
             const div = document.createElement('div');
             div.style = "padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;";
             const cor = m.tipo === 'sangria' ? '#c92a2a' : '#2b8a3e';
-            
             const dataMov = m.data ? ` em ${formatarDataHora(m.data)}` : '';
             const socioStr = m.usuarioAtividade ? `<br><small style="color:#0077b6; font-weight:bold; font-size:11px;">Por: ${m.usuarioAtividade}${dataMov}</small>` : '';
 
@@ -578,9 +702,9 @@ async function atualizarTelaCaixa() {
     if (!statusBox) return;
 
     try {
-        const resOrders = await fetch('http://localhost:3000/api/orders');
+        const resOrders = await fetch('/api/orders');
         const orders = await resOrders.json();
-        const resCaixa = await fetch('http://localhost:3000/api/caixa');
+        const resCaixa = await fetch('/api/caixa');
         const movs = await resCaixa.json();
 
         const hoje = new Date().toISOString().split('T')[0];
@@ -637,44 +761,37 @@ async function adicionarProduto() {
     const name = document.getElementById('nome-produto')?.value;
     const category = document.getElementById('categoria-produto')?.value;
     const price = parseFloat(document.getElementById('preco-produto')?.value);
+    const estoque = parseInt(document.getElementById('estoque-produto')?.value) || 50;
     if (!name || !category || isNaN(price)) return;
     
-    await fetch('http://localhost:3000/api/products', { 
-        method: 'POST', 
-        headers: { 
-            'Content-Type': 'application/json',
-            'X-Usuario': sessionStorage.getItem('admin_usuario')
-        }, 
-        body: JSON.stringify({ name, category, price }) 
+    await fetch('/api/products', { 
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Usuario': sessionStorage.getItem('admin_usuario') }, 
+        body: JSON.stringify({ name, category, price, estoque }) 
     });
     
     document.getElementById('nome-produto').value = '';
     document.getElementById('preco-produto').value = '';
+    document.getElementById('estoque-produto').value = '50';
     carregarProdutosAdmin();
 }
 
 async function excluirProduto(id) {
-    if (confirm("Excluir item?")) { await fetch(`http://localhost:3000/api/products/${id}`, { method: 'DELETE' }); carregarProdutosAdmin(); }
+    if (confirm("Excluir item?")) { await fetch(`/api/products/${id}`, { method: 'DELETE' }); carregarProdutosAdmin(); }
 }
 
 function editarProduto(id, n, p) {
     const nn = prompt("Nome:", n); const np = parseFloat(prompt("Preço:", p));
     if (!nn || isNaN(np)) return;
     
-    fetch(`http://localhost:3000/api/products/${id}`, { 
-        method: 'PUT', 
-        headers: { 
-            'Content-Type': 'application/json',
-            'X-Usuario': sessionStorage.getItem('admin_usuario')
-        }, 
+    fetch(`/api/products/${id}`, { 
+        method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Usuario': sessionStorage.getItem('admin_usuario') }, 
         body: JSON.stringify({ name: nn, price: np }) 
     }).then(() => carregarProdutosAdmin());
 }
 
-// ATUALIZAÇÃO: Relatório do Caixa agora também totalmente em Negrito e Preto
 async function imprimirRelatorioCaixa() {
-    const resOrders = await fetch('http://localhost:3000/api/orders'); const orders = await resOrders.json();
-    const resCaixa = await fetch('http://localhost:3000/api/caixa'); const movs = await resCaixa.json();
+    const resOrders = await fetch('/api/orders'); const orders = await resOrders.json();
+    const resCaixa = await fetch('/api/caixa'); const movs = await resCaixa.json();
     const hoje = new Date().toISOString().split('T')[0];
     
     const ordHoje = orders.filter(o => o.data.startsWith(hoje) && o.status !== 'Cancelado');
