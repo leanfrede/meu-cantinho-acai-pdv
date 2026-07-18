@@ -708,5 +708,38 @@
     "detalheTroco": "Troco para: 50",
     "data": "2026-07-17T03:27:36.403Z",
     "pontosAtuais": 6
+  },
+  {
+    "id": 38,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Cremes: Creme de Ninho, Creme de Ovomaltine | Cob: Mel",
+        "imgUrl": "https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=400",
+        "cremes": [
+          "Creme de Ninho",
+          "Creme de Ovomaltine"
+        ],
+        "coberturas": [
+          "Mel"
+        ],
+        "acomp": []
+      }
+    ],
+    "total": 13,
+    "formaPagamento": "Dinheiro (Troco para: 100)",
+    "valorRecebido": 13,
+    "troco": 0,
+    "tipoPedido": "Entrega (Endereço: Rua Edite Leite Noronha, 178)",
+    "taxaEntrega": 3,
+    "clienteFidelidade": "84986260856",
+    "status": "Pendente",
+    "origem": "Online",
+    "nomeClienteOnline": "Frederico",
+    "detalheTroco": "Troco para: 100",
+    "data": "2026-07-18T02:53:25.232Z",
+    "pontosAtuais": 7
   }
 ]

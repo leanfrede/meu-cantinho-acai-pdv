@@ -35,6 +35,12 @@
         .btn-pin-clear { background: #ffe5d9; color: #d62828; }
         .btn-pin-clear:hover { background: #ffccd5; }
 
+        /* Estilos do Módulo CRM */
+        .crm-tab-btn { background: #f1f3f5; border: 1px solid #dee2e6; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; color: #495057; font-size: 13px; }
+        .crm-tab-btn.active { background: #4a0072; color: white; border-color: #4a0072; }
+        .crm-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .crm-item:hover { background: #fdfaFE; }
+
         @media (max-width: 992px) { .admin-layout { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -99,7 +105,6 @@
                     </div>
                 </div>
 
-                <!-- MÁQUINA DO TEMPO -->
                 <div class="admin-card">
                     <h2>📅 Máquina do Tempo (Faturamento por Período / Datas Passadas)</h2>
                     <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; background: #fdf2fe; padding: 15px; border-radius: 8px; border: 1px solid #eeb4ff;">
@@ -122,7 +127,25 @@
                     </div>
                 </div>
 
-                <!-- NOVA SEÇÃO: CONFIGURAÇÕES DA LOJA / TAXA DE ENTREGA -->
+                <!-- NOVO MÓDULO: CRM & RESGATE DE CLIENTES -->
+                <div class="admin-card" style="border-top: 4px solid #d62828;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                        <div>
+                            <h2 style="margin: 0; border: none; padding: 0;">🎯 Marketing & CRM (Resgate de Clientes)</h2>
+                            <small style="color: #666;">Fidelize, encontre quem parou de comprar e chame de volta com 1 clique!</small>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="crm-tab-btn active" onclick="filtrarCRM('sumidos', this)">🚨 Clientes Sumidos (+15 dias)</button>
+                            <button class="crm-tab-btn" onclick="filtrarCRM('vip', this)">🏆 Ranking VIP (Mais Compram)</button>
+                            <button class="crm-tab-btn" onclick="filtrarCRM('todos', this)">👥 Todos os Clientes</button>
+                        </div>
+                    </div>
+                    
+                    <div id="crm-lista-clientes" class="log-container" style="max-height: 300px; border: 1px solid #e9ecef;">
+                        <div style="padding: 20px; text-align: center; color: #868e96;">Carregando banco de dados da loja...</div>
+                    </div>
+                </div>
+
                 <div class="admin-card">
                     <h2>⚙️ Configurações da Loja / Taxa de Entrega</h2>
                     <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b8daff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">

@@ -21,7 +21,7 @@ const FILE_PRODUCTS = path.join(__dirname, 'products.json');
 const FILE_ORDERS = path.join(__dirname, 'orders.json');
 const FILE_CAIXA = path.join(__dirname, 'caixa.json');
 const FILE_CLIENTES = path.join(__dirname, 'clientes.json');
-const FILE_CONFIG = path.join(__dirname, 'config.json'); // Novo arquivo de configurações!
+const FILE_CONFIG = path.join(__dirname, 'config.json');
 
 function inicializarArquivos() {
     if (!fs.existsSync(FILE_PRODUCTS)) fs.writeFileSync(FILE_PRODUCTS, JSON.stringify([]));
@@ -104,12 +104,39 @@ app.delete('/api/products/:id', (req, res) => {
     res.json({ success: true });
 });
 
-/* --- ROTAS DE CLIENTES --- */
+/* --- ROTAS DE CLIENTES & CRM INTELIGENTE --- */
+app.get('/api/clientes', (req, res) => {
+    const dataCli = fs.readFileSync(FILE_CLIENTES, 'utf-8');
+    const clientes = JSON.parse(dataCli);
+    const listaClientes = [];
+    const hoje = new Date().getTime();
+
+    for (let fone in clientes) {
+        const c = clientes[fone];
+        let diasSumido = 0;
+        if (c.ultimaCompra) {
+            const diffTempo = hoje - new Date(c.ultimaCompra).getTime();
+            diasSumido = Math.floor(diffTempo / (1000 * 3600 * 24));
+        }
+        listaClientes.push({
+            telefone: fone,
+            nome: c.nome || "Cliente (Sem Nome)",
+            endereco: c.endereco || "Não cadastrado",
+            pedidos: c.pedidos || 0,
+            totalGasto: c.totalGasto || 0,
+            primeiraCompra: c.primeiraCompra || null,
+            ultimaCompra: c.ultimaCompra || null,
+            diasSumido: diasSumido
+        });
+    }
+    res.json(listaClientes);
+});
+
 app.get('/api/clientes/:telefone', (req, res) => {
     const tel = req.params.telefone;
     const dataCli = fs.readFileSync(FILE_CLIENTES, 'utf-8');
     const clientes = JSON.parse(dataCli);
-    res.json({ pedidos: clientes[tel] ? clientes[tel].pedidos : 0 });
+    res.json({ pedidos: clientes[tel] ? clientes[tel].pedidos : 0, dados: clientes[tel] || null });
 });
 
 /* --- ROTAS DE VENDAS --- */
@@ -152,12 +179,35 @@ app.post('/api/orders', (req, res) => {
         data: data || new Date().toISOString()
     };
     
+    // ATUALIZAÇÃO DO BANCO DE DADOS DE CLIENTES E FIDELIDADE
     if (clienteFidelidade) {
         const dataCli = fs.readFileSync(FILE_CLIENTES, 'utf-8');
         const clientes = JSON.parse(dataCli);
-        if (!clientes[clienteFidelidade]) clientes[clienteFidelidade] = { pedidos: 0 };
+        
+        if (!clientes[clienteFidelidade]) {
+            clientes[clienteFidelidade] = {
+                nome: nomeClienteOnline || "Cliente Balcão",
+                endereco: tipoPedido.includes('Endereço:') ? tipoPedido.split('Endereço: ')[1].replace(')', '') : "Não cadastrado",
+                pedidos: 0,
+                totalGasto: 0,
+                primeiraCompra: new Date().toISOString(),
+                ultimaCompra: new Date().toISOString()
+            };
+        }
+
+        if (nomeClienteOnline && clientes[clienteFidelidade].nome === "Cliente Balcão") {
+            clientes[clienteFidelidade].nome = nomeClienteOnline;
+        }
+        if (tipoPedido.includes('Endereço:')) {
+            clientes[clienteFidelidade].endereco = tipoPedido.split('Endereço: ')[1].replace(')', '');
+        }
+
         clientes[clienteFidelidade].pedidos += 1;
+        clientes[clienteFidelidade].totalGasto = (clientes[clienteFidelidade].totalGasto || 0) + parseFloat(total);
+        clientes[clienteFidelidade].ultimaCompra = new Date().toISOString();
+
         if (clientes[clienteFidelidade].pedidos > 10) clientes[clienteFidelidade].pedidos = 1;
+        
         fs.writeFileSync(FILE_CLIENTES, JSON.stringify(clientes, null, 2));
         novaVenda.pontosAtuais = clientes[clienteFidelidade].pedidos;
     }
@@ -197,6 +247,8 @@ app.delete('/api/orders/:id', (req, res) => {
             const clientes = JSON.parse(dataCli);
             if (clientes[orders[index].clienteFidelidade] && clientes[orders[index].clienteFidelidade].pedidos > 0) {
                 clientes[orders[index].clienteFidelidade].pedidos -= 1;
+                clientes[orders[index].clienteFidelidade].totalGasto -= orders[index].total;
+                if(clientes[orders[index].clienteFidelidade].totalGasto < 0) clientes[orders[index].clienteFidelidade].totalGasto = 0;
                 fs.writeFileSync(FILE_CLIENTES, JSON.stringify(clientes, null, 2));
             }
         }

@@ -8,7 +8,9 @@ let produtoSendoConfigurado = null;
 let totalVendaAtual = 0;
 let totalItensCarrinho = 0;
 let ultimoPedidoSalvo = null;
-let taxaEntregaConfigurada = 3.00; // Taxa padrão do sistema
+let taxaEntregaConfigurada = 3.00; 
+let indexSendoEditado = null;
+let listaClientesGlobal = []; // Memória do CRM
 
 let caixaAberto = localStorage.getItem('caixa_aberto') === 'true';
 let fundoDeTroco = parseFloat(localStorage.getItem('caixa_fundo')) || 0;
@@ -44,7 +46,6 @@ document.addEventListener('keydown', (event) => {
 // INICIALIZAÇÃO AUTOMÁTICA
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', async () => {
-    // Carrega a configuração da taxa de entrega da loja
     try {
         const resConfig = await fetch('/api/config');
         const config = await resConfig.json();
@@ -116,6 +117,7 @@ function liberarPainelAdmin() {
     carregarMovimentacoesCaixa();
     atualizarTelaCaixa();
     carregarGraficosDashboard();
+    carregarCRM(); // Carrega o novo cérebro de marketing
     
     const hojeStr = new Date().toISOString().split('T')[0];
     const elIni = document.getElementById('data-inicio-filter');
@@ -132,7 +134,6 @@ function fazerLogoutAdmin() {
 
 function sairParaCaixa() { window.location.href = "index.html"; }
 
-// NOVA FUNÇÃO NO ADMIN: SALVAR TAXA DE ENTREGA PADRÃO
 async function salvarTaxaEntregaAdmin() {
     const novaTaxa = parseFloat(document.getElementById('config-taxa-entrega').value);
     if (isNaN(novaTaxa) || novaTaxa < 0) { alert("⚠️ Digite um valor de taxa válido!"); return; }
@@ -148,6 +149,95 @@ async function salvarTaxaEntregaAdmin() {
             alert(`✅ Sucesso! A taxa de entrega da loja foi alterada para R$ ${novaTaxa.toFixed(2)}.`);
         }
     } catch(e) { console.error(e); }
+}
+
+// ==========================================================================
+// NOVO MÓDULO: CRM INTELIGENTE & MARKETING DE RESGATE
+// ==========================================================================
+async function carregarCRM() {
+    try {
+        const res = await fetch('/api/clientes');
+        listaClientesGlobal = await res.json();
+        // Por padrão, mostra os clientes sumidos
+        renderizarCRM('sumidos');
+    } catch (e) { console.error("Erro ao carregar CRM:", e); }
+}
+
+function filtrarCRM(tipo, elemBotao) {
+    if (elemBotao) {
+        document.querySelectorAll('.crm-tab-btn').forEach(btn => btn.classList.remove('active'));
+        elemBotao.classList.add('active');
+    }
+    renderizarCRM(tipo);
+}
+
+function renderizarCRM(tipo) {
+    const boxLista = document.getElementById('crm-lista-clientes');
+    if (!boxLista) return;
+    boxLista.innerHTML = '';
+
+    if (listaClientesGlobal.length === 0) {
+        boxLista.innerHTML = '<div style="padding: 30px; text-align: center; color: #868e96;">Nenhum cliente cadastrado ainda. As fichas serão criadas automaticamente conforme as vendas acontecerem!</div>';
+        return;
+    }
+
+    let listaFiltrada = [...listaClientesGlobal];
+
+    if (tipo === 'sumidos') {
+        // Filtra clientes sem comprar há pelo menos 15 dias (e que já compraram pelo menos 1 vez)
+        listaFiltrada = listaFiltrada.filter(c => c.diasSumido >= 15 && c.pedidos > 0);
+        listaFiltrada.sort((a, b) => b.diasSumido - a.diasSumido); // Os mais sumidos primeiro
+    } else if (tipo === 'vip') {
+        // Ordena pelos que mais gastaram na loja
+        listaFiltrada.sort((a, b) => b.totalGasto - a.totalGasto);
+    } else {
+        // Ordem alfabética para "Todos"
+        listaFiltrada.sort((a, b) => a.nome.localeCompare(b.nome));
+    }
+
+    if (listaFiltrada.length === 0) {
+        let msg = "Nenhum cliente encontrado neste filtro.";
+        if (tipo === 'sumidos') msg = "🎉 Parabéns! Você não tem clientes sumidos há mais de 15 dias!";
+        boxLista.innerHTML = `<div style="padding: 30px; text-align: center; color: #2b9348; font-weight: bold;">${msg}</div>`;
+        return;
+    }
+
+    listaFiltrada.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'crm-item';
+        
+        let badgeStatus = `<span style="background: #eafaf1; color: #2b9348; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">Comprou há ${c.diasSumido} dia(s)</span>`;
+        if (c.diasSumido >= 30) {
+            badgeStatus = `<span style="background: #ffe5d9; color: #d62828; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">🚨 Sumido há ${c.diasSumido} dias</span>`;
+        } else if (c.diasSumido >= 15) {
+            badgeStatus = `<span style="background: #fff3cd; color: #856404; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">⚠️ Ausente há ${c.diasSumido} dias</span>`;
+        }
+
+        div.innerHTML = `
+            <div>
+                <strong style="color: #343a40; font-size: 15px;">${c.nome}</strong> ${badgeStatus}<br>
+                <small style="color: #666;">📱 WhatsApp: <b>${c.telefone}</b> | 🛵 Endereço: ${c.endereco}</small><br>
+                <small style="color: #4a0072; font-weight: bold;">🍧 Total na Loja: R$ ${c.totalGasto.toFixed(2)} (${c.pedidos} pedidos executados)</small>
+            </div>
+            <div>
+                <button onclick="abrirWhatsAppResgate('${c.telefone}', '${c.nome}', ${c.diasSumido})" style="background: #25d366; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(37,211,102,0.3);">
+                    💬 Chamar com Cupom
+                </button>
+            </div>
+        `;
+        boxLista.appendChild(div);
+    });
+}
+
+function abrirWhatsAppResgate(telefone, nome, dias) {
+    let foneLimpo = telefone.replace(/\D/g, '');
+    if (foneLimpo.length === 10 || foneLimpo.length === 11) foneLimpo = '55' + foneLimpo;
+
+    const primeiroNome = nome.split(' ')[0] !== "Cliente" ? nome.split(' ')[0] : "amigo(a)";
+    
+    const texto = `Olá, *${primeiroNome}*! Aqui é do *Meu Cantinho Açaí* 🔮🍧\n\nNossa equipe percebeu que faz um tempinho que você não pede o seu açaí favorito com a gente e estávamos morrendo de saudades!\n\n🎁 Para deixar o seu dia mais cremoso, liberamos um *MIMO ESPECIAL (Entrega Grátis ou Desconto)* exclusivo para o seu WhatsApp hoje!\n\nBasta responder esta mensagem para garantir o seu. Vamos preparar no capricho? ✨`;
+    
+    window.open(`https://api.whatsapp.com/send?phone=${foneLimpo}&text=${encodeURIComponent(texto)}`, '_blank');
 }
 
 // ==========================================================================
@@ -253,7 +343,6 @@ async function carregarAlertaPedidosOnline() {
     try {
         const res = await fetch('/api/orders');
         const orders = await res.json();
-        // Acha pedidos online que ainda não foram aprovados (Pendente)
         const pendentesOnline = orders.filter(o => o.origem === 'Online' && o.status === 'Pendente');
 
         if (pendentesOnline.length === 0) {
@@ -277,7 +366,6 @@ async function carregarAlertaPedidosOnline() {
 }
 
 async function aprovarPedidoOnline(pedido) {
-    // Agora o sistema já mostra a forma de pagamento que o cliente escolheu!
     const confirmacao = confirm(
         `🚨 APROVAR PEDIDO ONLINE #${pedido.id}\n` +
         `-----------------------------------------\n` +
@@ -292,7 +380,6 @@ async function aprovarPedidoOnline(pedido) {
     if (!confirmacao) return;
 
     try {
-        // Ao aprovar, mudamos o status para Pronto para Preparo ou Pendente na cozinha
         const res = await fetch(`/api/orders/${pedido.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -303,6 +390,7 @@ async function aprovarPedidoOnline(pedido) {
             carregarAlertaPedidosOnline();
             atualizarTelaCaixa();
             carregarPedidosCozinha();
+            carregarCRM(); // Atualiza a ficha do cliente
         }
     } catch(e) { console.error(e); }
 }
@@ -369,22 +457,53 @@ function filtrarCategoria(categoria) {
 }
 
 function abrirModal(produto) {
+    indexSendoEditado = null; 
     produtoSendoConfigurado = produto;
     const modalTitulo = document.getElementById('modal-titulo');
     if (modalTitulo) modalTitulo.innerText = `Personalizar: ${produto.name}`;
     document.querySelectorAll('#modal-conteudo input[type="checkbox"]').forEach(cb => cb.checked = false);
+    
+    const btnConf = document.querySelector('#modal-produto .btn-modal-confirmar');
+    if(btnConf) btnConf.innerText = "Confirmar Receita";
+
     const modalDiv = document.getElementById('modal-produto');
     if (modalDiv) modalDiv.style.display = 'flex';
 }
 
-function fecharModal() { const modalDiv = document.getElementById('modal-produto'); if (modalDiv) modalDiv.style.display = 'none'; }
+function fecharModal() { 
+    indexSendoEditado = null;
+    const btnConf = document.querySelector('#modal-produto .btn-modal-confirmar');
+    if(btnConf) btnConf.innerText = "Confirmar Receita";
+    const modalDiv = document.getElementById('modal-produto'); 
+    if (modalDiv) modalDiv.style.display = 'none'; 
+}
+
+function editarDoCarrinho(index) {
+    indexSendoEditado = index;
+    const item = carrinho[index];
+    produtoSendoConfigurado = produtosTodos.find(p => p.id === item.id) || { id: item.id, name: item.name, price: item.price };
+    
+    const modalTitulo = document.getElementById('modal-titulo');
+    if (modalTitulo) modalTitulo.innerText = `Editar: ${item.name}`;
+    
+    document.querySelectorAll('#modal-conteudo input[type="checkbox"]').forEach(cb => cb.checked = false);
+    
+    if(item.cremes) item.cremes.forEach(v => { const el = document.querySelector(`input[name="creme"][value="${v}"]`); if(el) el.checked = true; });
+    if(item.coberturas) item.coberturas.forEach(v => { const el = document.querySelector(`input[name="cobertura"][value="${v}"]`); if(el) el.checked = true; });
+    if(item.acompanhamentos) item.acompanhamentos.forEach(v => { const el = document.querySelector(`input[name="acompanhamento"][value="${v}"]`); if(el) el.checked = true; });
+    
+    const btnConf = document.querySelector('#modal-produto .btn-modal-confirmar');
+    if(btnConf) btnConf.innerText = "✔ Salvar Alterações";
+    
+    const modalDiv = document.getElementById('modal-produto');
+    if (modalDiv) modalDiv.style.display = 'flex';
+}
 
 function confirmarAdicao() {
     const cremes = Array.from(document.querySelectorAll('input[name="creme"]:checked')).map(cb => cb.value);
     const coberturas = Array.from(document.querySelectorAll('input[name="cobertura"]:checked')).map(cb => cb.value);
     const acompanhamentos = Array.from(document.querySelectorAll('input[name="acompanhamento"]:checked')).map(cb => cb.value);
 
-    // TRAVAS NO CAIXA
     if (cremes.length > 2) { alert("⚠️ Escolha no máximo 2 Cremes."); return; }
     if (coberturas.length > 2) { alert("⚠️ Escolha no máximo 2 Coberturas."); return; }
     if (acompanhamentos.length > 5) { alert("⚠️ Escolha no máximo 5 Acompanhamentos."); return; }
@@ -395,7 +514,23 @@ function confirmarAdicao() {
     if (acompanhamentos.length > 0) observacao += (observacao ? ' | ' : '') + `Acomps: ${acompanhamentos.join(', ')}`;
     if (!observacao) observacao = "Copos simples tradicional";
 
-    carrinho.push({ id: produtoSendoConfigurado.id, name: produtoSendoConfigurado.name, price: produtoSendoConfigurado.price, obs: observacao });
+    const novoItem = { 
+        id: produtoSendoConfigurado.id, 
+        name: produtoSendoConfigurado.name, 
+        price: produtoSendoConfigurado.price, 
+        obs: observacao,
+        cremes: cremes,
+        coberturas: coberturas,
+        acompanhamentos: acompanhamentos
+    };
+
+    if (indexSendoEditado !== null) {
+        carrinho[indexSendoEditado] = novoItem;
+        indexSendoEditado = null;
+    } else {
+        carrinho.push(novoItem);
+    }
+
     atualizarCarrinhoUI();
     fecharModal();
 }
@@ -414,7 +549,11 @@ function atualizarCarrinhoUI() {
         div.className = 'cart-item-row';
         div.innerHTML = `
             <div class="cart-item-info"><strong>1x ${item.name}</strong><small>${item.obs}</small></div>
-            <div class="cart-item-right"><span>R$ ${item.price.toFixed(2)}</span><button class="btn-remover-item" onclick="removerDoCarrinho(${index})">❌</button></div>
+            <div class="cart-item-right">
+                <span>R$ ${item.price.toFixed(2)}</span>
+                <button class="btn-editar-item" onclick="editarDoCarrinho(${index})" title="Editar Item" style="background:none; border:none; cursor:pointer; font-size:14px; margin-right:4px;">✏️</button>
+                <button class="btn-remover-item" onclick="removerDoCarrinho(${index})" title="Remover Item">❌</button>
+            </div>
         `;
         lista.appendChild(div);
     });
@@ -495,11 +634,16 @@ async function verificarFidelidade() {
         const numPedidos = data.pedidos || 0;
         const divStatus = document.getElementById('status-fidelidade');
         
+        let txtExtra = "";
+        if (data.dados && data.dados.nome && data.dados.nome !== "Cliente Balcão") {
+            txtExtra = ` | 👤 <b>${data.dados.nome}</b>`;
+        }
+
         if(numPedidos >= 9) {
-            divStatus.innerHTML = `🎉 UAU! Este é o 10º pedido! O cliente GANHOU o Açaí de 300ml!`;
+            divStatus.innerHTML = `🎉 UAU! Este é o 10º pedido! O cliente GANHOU o Açaí de 300ml!${txtExtra}`;
             divStatus.style.color = '#d62828';
         } else {
-            divStatus.innerHTML = `🌟 O cliente já tem ${numPedidos} pedido(s) salvo(s). Faltam ${10 - numPedidos} para o prêmio.`;
+            divStatus.innerHTML = `🌟 O cliente já tem ${numPedidos} pedido(s) salvo(s). Faltam ${10 - numPedidos} para o prêmio.${txtExtra}`;
             divStatus.style.color = '#2b9348';
         }
     } catch(e) { console.error(e); }
@@ -531,6 +675,7 @@ async function confirmarVendaComPagamento() {
             document.getElementById('whatsapp-cliente').value = telefoneFidelidadeFinal ? telefoneFidelidadeFinal : '';
             document.getElementById('modal-sucesso').style.display = 'flex';
             carregarProdutos();
+            carregarCRM(); // Atualiza em tempo real as estatísticas no CRM
         }
     } catch (error) { console.error(error); }
 }
@@ -868,6 +1013,7 @@ async function cancelarVendaAdmin(id) {
             atualizarTelaCaixa(); 
             carregarGraficosDashboard();
             carregarProdutosAdmin();
+            carregarCRM();
         }
     } catch (e) { console.error(e); }
 }
