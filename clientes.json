@@ -1,6 +1,9 @@
 {
   "84986260856": {
-    "pedidos": 7
+    "pedidos": 8,
+    "endereco": "Rua Edite Leite Noronha, 178",
+    "totalGasto": 13,
+    "ultimaCompra": "2026-07-19T16:57:10.975Z"
   },
   "84921794447": {
     "pedidos": 1

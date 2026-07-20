@@ -3,83 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Cantinho Açaí - Frente de Caixa</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Caixa - Meu Cantinho Açaí</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-principal: #1a0b2e; 
+            --bg-cards: #2d164f; 
+            --cor-marca: #7209b7; 
+            --cor-marca-hover: #b5179e; 
+            --verde-sucesso: #4cc9f0; 
+            --texto-claro: #f8f9fa;
+            --texto-escuro: #1a1a1a;
+        }
+
+        body { background-color: var(--bg-principal); margin: 0; font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; color: var(--texto-claro); }
+        
+        .top-bar { background-color: var(--cor-marca); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 999; position: relative; flex-shrink: 0; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo-area h1 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        .badge { background: var(--verde-sucesso); color: #000; font-size: 11px; padding: 4px 8px; border-radius: 12px; font-weight: 800; }
+        .status-area { display: flex; align-items: center; gap: 15px; }
+        .shortcut-tip { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: bold; margin-right: 10px; }
+        .btn-top { padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-top:hover { filter: brightness(1.2); transform: translateY(-1px); }
+
+        .main-layout { display: grid; grid-template-columns: 1fr 380px; gap: 20px; padding: 20px; flex: 1; overflow: hidden; box-sizing: border-box; }
+
+        .products-section { display: flex; flex-direction: column; overflow: hidden; position: relative; z-index: 1; }
+        .category-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; flex-shrink: 0; padding-bottom: 5px; }
+        .tab-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 10px 18px; border-radius: 8px; font-weight: bold; color: var(--texto-claro); cursor: pointer; white-space: nowrap; transition: 0.2s; font-family: 'Inter', sans-serif;}
+        .tab-btn.active { background: var(--cor-marca-hover); color: white; border-color: var(--cor-marca-hover); box-shadow: 0 4px 15px rgba(181, 23, 158, 0.4); }
+        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.2); }
+        
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; overflow-y: auto; align-content: start; padding-right: 5px; padding-bottom: 20px;}
+        .produto-btn { background: var(--bg-cards); border: 2px solid transparent; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 110px; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-family: 'Inter', sans-serif; position: relative; z-index: 2; color: var(--texto-claro);}
+        .produto-btn:hover { border-color: var(--cor-marca-hover); box-shadow: 0 8px 20px rgba(0,0,0,0.4); transform: translateY(-4px); z-index: 5;}
+        .produto-btn span { font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+        .price-tag { background: rgba(255,255,255,0.1); color: var(--verde-sucesso); padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 14px; }
+
+        .cart-section { background: white; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; color: var(--texto-escuro); position: relative; z-index: 1;}
+        .cart-header { padding: 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; }
+        .cart-header h2 { margin: 0; font-size: 18px; color: var(--cor-marca); display: flex; align-items: center; gap: 8px; font-weight: 800;}
+        .badge-contagem { background: var(--cor-marca); color: white; font-size: 12px; padding: 4px 10px; border-radius: 12px; font-weight: bold; }
+        
+        .cart-items { flex: 1; overflow-y: auto; padding: 15px 20px; }
+        .cart-item-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #eee; }
+        .cart-item-info { flex: 1; padding-right: 10px; }
+        .cart-item-info strong { display: block; color: var(--texto-escuro); font-size: 14px; margin-bottom: 4px; font-weight: 700;}
+        .cart-item-info small { color: #666; font-size: 12px; line-height: 1.3; display: block; }
+        .cart-item-right { display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--cor-marca); }
+        
+        .cart-footer { padding: 20px; background: #fdfdfd; border-top: 1px solid #eee; }
+        .total-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 16px; color: #666; font-weight: bold; border-bottom: 1px dashed #ccc; padding-bottom: 15px;}
+        .total-area strong { font-size: 26px; color: var(--cor-marca); font-weight: 800;}
+        .btn-finish { background: var(--cor-marca); color: white; border: none; width: 100%; padding: 16px; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.2s; font-family: 'Inter', sans-serif;}
+        .btn-finish:hover { background: var(--cor-marca-hover); transform: scale(0.98); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 9999; backdrop-filter: blur(5px); font-family: 'Inter', sans-serif; color: var(--texto-escuro);}
+        .modal-content { color: var(--texto-escuro); }
+    </style>
 </head>
 <body>
-
     <header class="top-bar">
         <div class="logo-area">
             <span style="font-size: 24px;">🔮</span>
-            <h1>Meu Cantinho Açaí</h1>
-            <span class="badge-online">PDV Online</span>
+            <h1>Meu Cantinho Açaí <span class="badge">PDV Online</span></h1>
         </div>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <span style="font-size: 12px; color: #ffc107; font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 4px;">⌨️ Atalhos: F2 = Pagar | ESC = Fechar</span>
-            <a href="cardapio.html" target="_blank" class="btn-admin" style="background: #2b9348;">📱 Ver Cardápio Online</a>
-            <a href="cozinha.html" class="btn-admin" style="background: #0077b6;">🍳 Monitor da Cozinha</a>
-            <a href="admin.html" class="btn-admin">⚙️ Painel Administrativo</a>
+        <div class="status-area">
+            <span class="shortcut-tip">⌨️ Atalhos: F2 = Pagar | ESC = Fechar</span>
+            <!-- target="_blank" MANTIDO APENAS NO CARDÁPIO -->
+            <a href="cardapio.html" target="_blank" class="btn-top" style="background:var(--verde-sucesso); color:#000;">📱 Ver Cardápio Online</a>
+            <!-- target="_blank" REMOVIDO PARA PARAR DE ABRIR ABAS INFINITAS -->
+            <a href="cozinha.html" class="btn-top" style="background:#4361ee; color:white;">🍳 Monitor da Cozinha</a>
+            <a href="admin.html" class="btn-top" style="background:#f72585; color:white;">⚙️ Painel Admin</a>
         </div>
     </header>
 
-    <!-- ÁREA DE ALERTA DE PEDIDOS ONLINE PENDENTES -->
-    <div id="alerta-pedidos-online" style="background: #ffecb3; border-bottom: 2px solid #ffc107; padding: 10px 20px; display: none; align-items: center; justify-content: space-between; font-weight: bold; color: #6f42c1;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 22px; animation: pulse 1s infinite;">🔔</span>
-            <span id="txt-alerta-online">Existem pedidos do Cardápio Digital aguardando aprovação!</span>
-        </div>
+    <!-- ALERTA DE NOVOS PEDIDOS ONLINE -->
+    <div id="alerta-pedidos-online" style="display: none; background: var(--verde-sucesso); color: #000; padding: 12px 20px; font-weight: bold; align-items: center; justify-content: space-between; border-bottom: 2px solid #3eb8db; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 998; position: relative;">
+        <span id="txt-alerta-online">🔔 Novo pedido vindo do Cardápio Digital!</span>
         <div id="lista-botoes-online" style="display: flex; gap: 10px;"></div>
     </div>
 
-    <div class="main-container">
-        
-        <div class="menu-section">
-            <div class="tabs">
+    <main class="main-layout">
+        <!-- SEÇÃO ESQUERDA: CATÁLOGO DE PRODUTOS -->
+        <section class="products-section">
+            <nav class="category-tabs">
                 <button class="tab-btn active" onclick="filtrarCategoria('Açaí')">🟣 Açaís</button>
                 <button class="tab-btn" onclick="filtrarCategoria('Cremes')">🍨 Cremes</button>
                 <button class="tab-btn" onclick="filtrarCategoria('Adicionais')">🍓 Adicionais</button>
                 <button class="tab-btn" onclick="filtrarCategoria('Coberturas')">🍫 Coberturas</button>
                 <button class="tab-btn" onclick="filtrarCategoria('Tapiocas')">🥞 Tapiocas</button>
+                <button class="tab-btn" onclick="filtrarCategoria('Crepiocas')">🍳 Crepiocas</button>
                 <button class="tab-btn" onclick="filtrarCategoria('Bebidas')">🥤 Bebidas</button>
-            </div>
-
+            </nav>
             <div id="product-grid" class="product-grid"></div>
-        </div>
+        </section>
 
-        <div class="cart-section">
+        <!-- SEÇÃO DIREITA: CARRINHO E FECHAMENTO -->
+        <section class="cart-section">
             <div class="cart-header">
                 <h2>🛒 Pedido Atual</h2>
-                <span id="itens-contagem" class="itens-badge">0 itens</span>
+                <span id="itens-contagem" class="badge-contagem">0 itens</span>
             </div>
-
-            <div id="cart-items" class="cart-items-list"></div>
+            
+            <div id="cart-items" class="cart-items"></div>
 
             <div class="cart-footer">
                 <div class="total-area">
                     <span>Total a Pagar:</span>
-                    <span id="total-price">R$ 0.00</span>
+                    <strong id="total-price">R$ 0.00</strong>
                 </div>
-
-                <button class="btn-finalizar" onclick="finalizarVenda()">💰 FINALIZAR VENDA (F2)</button>
+                <button class="btn-finish" onclick="finalizarVenda()">💰 FINALIZAR VENDA (F2)</button>
                 
-                <div class="caixa-acoes-grid">
-                    <button onclick="registrarMovimentacao('sangria')" class="btn-caixa btn-sangria">🔴 Sangria (-)</button>
-                    <button onclick="registrarMovimentacao('suprimento')" class="btn-caixa btn-suprimento">🟢 Suprimento (+)</button>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="registrarMovimentacao('sangria')" style="flex:1; background:#ffe5d9; color:#c92a2a; border:1px solid #ffcad4; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; font-family:'Inter', sans-serif;">🔴 Sangria (-)</button>
+                    <button onclick="registrarMovimentacao('suprimento')" style="flex:1; background:#d8f3dc; color:#1b4332; border:1px solid #b7e4c7; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px; font-family:'Inter', sans-serif;">🟢 Suprimento (+)</button>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
-    <!-- MODAL DE PERSONALIZAÇÃO (ATUALIZADO COM CREMES) -->
-    <div id="modal-produto" class="modal-overlay">
-        <div class="modal-box" style="max-width: 450px;">
-            <h2 id="modal-titulo">Personalizar Produto</h2>
-            <div id="modal-conteudo" style="max-height: 65vh; overflow-y: auto; padding-right: 5px; text-align: left;">
+    <!-- MODAL DE PERSONALIZAÇÃO INTELIGENTE DO CAIXA -->
+    <div id="modal-produto" class="modal-overlay" style="display: none; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: #ffffff; padding: 25px; border-radius: 16px; max-width: 550px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+            <h3 id="modal-titulo" style="color: var(--cor-marca); border-bottom: 2px solid #eee; padding-bottom: 15px; margin-top: 0; font-size: 20px; flex-shrink: 0;">Personalizar Produto</h3>
+            <div id="modal-conteudo" style="overflow-y: auto; padding-right: 5px; text-align: left; flex: 1;">
                 
-                <!-- SEÇÃO 1: CREMES -->
-                <div style="background: #fcf4ff; border: 1px solid #eeb4ff; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-                    <label style="color: #4a0072; font-weight: bold; display: block; font-size: 14px; margin-bottom: 5px;">🍨 CREMES (Escolha até 2 para misturar):</label>
-                    <div class="checkbox-group" style="grid-template-columns: 1fr; gap: 6px;">
+                <!-- CREMES -->
+                <div id="caixa-secao-cremes" style="margin-bottom: 15px; background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
+                    <strong style="color: #333; display: block; margin-bottom: 8px;">🍨 CREMES (Escolha até 2 para misturar):</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
                         <label><input type="checkbox" name="creme" value="Creme de Ninho"> Creme de Ninho</label>
                         <label><input type="checkbox" name="creme" value="Creme de Morango"> Creme de Morango</label>
                         <label><input type="checkbox" name="creme" value="Creme de Ovomaltine"> Creme de Ovomaltine</label>
@@ -87,116 +141,167 @@
                         <label><input type="checkbox" name="creme" value="Creme de Paçoca"> Creme de Paçoca</label>
                         <label><input type="checkbox" name="creme" value="Creme de Nutella"> Creme de Nutella</label>
                         <label><input type="checkbox" name="creme" value="Creme de Cupuaçu"> Creme de Cupuaçu</label>
-                        <label><input type="checkbox" name="creme" value="Apenas Açaí Puro (Sem Creme)"> ⚡ Apenas Açaí Puro (Sem Creme)</label>
+                        <label style="grid-column: 1/-1;"><input type="checkbox" name="creme" value="Apenas Açaí Puro (Sem Creme)"> ⚡ Apenas Açaí Puro (Sem Creme)</label>
                     </div>
                 </div>
 
-                <!-- SEÇÃO 2: COBERTURAS -->
-                <label style="color: #4a0072; font-weight: bold; display: block; margin-bottom: 5px;">🍫 COBERTURAS (Escolha até 2):</label>
-                <div class="checkbox-group" style="margin-bottom: 15px;">
-                    <label><input type="checkbox" name="cobertura" value="Leite Condensado"> Leite Condensado</label>
-                    <label><input type="checkbox" name="cobertura" value="Mel"> Mel</label>
-                    <label><input type="checkbox" name="cobertura" value="Calda de Chocolate"> Calda de Chocolate</label>
-                    <label><input type="checkbox" name="cobertura" value="Calda de Morango"> Calda de Morango</label>
-                    <label><input type="checkbox" name="cobertura" value="Fini Dentaduras"> Fini Dentaduras</label>
-                    <label><input type="checkbox" name="cobertura" value="Fini Bananas"> Fini Bananas</label>
+                <!-- COBERTURAS -->
+                <div id="caixa-secao-coberturas" style="margin-bottom: 15px; background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
+                    <strong style="color: #333; display: block; margin-bottom: 8px;">🍫 COBERTURAS (Escolha até 2):</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
+                        <label><input type="checkbox" name="cobertura" value="Leite Condensado"> Leite Condensado</label>
+                        <label><input type="checkbox" name="cobertura" value="Mel"> Mel</label>
+                        <label><input type="checkbox" name="cobertura" value="Calda de Chocolate"> Calda de Chocolate</label>
+                        <label><input type="checkbox" name="cobertura" value="Calda de Morango"> Calda de Morango</label>
+                        <label><input type="checkbox" name="cobertura" value="Fini Dentaduras"> Fini Dentaduras</label>
+                        <label><input type="checkbox" name="cobertura" value="Fini Bananas"> Fini Bananas</label>
+                    </div>
                 </div>
+
+                <!-- ACOMPANHAMENTOS -->
+                <div id="caixa-secao-acomp" style="margin-bottom: 15px; background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
+                    <strong style="color: #333; display: block; margin-bottom: 8px;">🍓 ACOMPANHAMENTOS (Escolha até 5):</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
+                        <label><input type="checkbox" name="acompanhamento" value="Granola"> Granola</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Gergelim torrado"> Gergelim torrado</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Amendoim"> Amendoim</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Castanha de Caju"> Castanha de Caju</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Flocos de Coco"> Flocos de Coco</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Leite em Pó"> Leite em Pó</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Farinha Láctea"> Farinha Láctea</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Chocoball"> Chocoball</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Ovomaltine"> Ovomaltine</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Gotas de Chocolate"> Gotas de Chocolate</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Doce de Leite"> Doce de Leite</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Paçoquinha"> Paçoquinha</label>
+                        <label><input type="checkbox" name="acompanhamento" value="Nutella"> Nutella</label>
+                    </div>
+                </div>
+
+                <!-- TAPIOCAS -->
+                <div id="caixa-secao-tapioca" style="margin-bottom: 15px; background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #eee; display: none;">
+                    <strong style="color: #333; display: block; margin-bottom: 8px;">🥞 OPÇÕES DE PREPARO DA TAPIOCA:</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
+                        <label><input type="checkbox" name="tapioca-opt" value="Bem tostada"> 🔥 Bem tostada / crocante</label>
+                        <label><input type="checkbox" name="tapioca-opt" value="Massa macia"> ☁️ Massa mais macia</label>
+                        <label><input type="checkbox" name="tapioca-opt" value="Com manteiga da terra"> 🧈 Passar Manteiga da Terra</label>
+                        <label><input type="checkbox" name="tapioca-opt" value="Sem cebola"> 🚫 Sem cebola</label>
+                        <label><input type="checkbox" name="tapioca-opt" value="Sem tomate"> 🚫 Sem tomate</label>
+                        <label><input type="checkbox" name="tapioca-opt" value="Caprichar no recheio"> 🤤 Caprichar no recheio</label>
+                    </div>
+                </div>
+
+                <!-- BEBIDAS -->
+                <div id="caixa-secao-bebida" style="margin-bottom: 15px; background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #eee; display: none;">
+                    <strong style="color: #333; display: block; margin-bottom: 8px;">🥤 PREFERÊNCIA DA BEBIDA:</strong>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 14px;">
+                        <label><input type="checkbox" name="bebida-opt" value="Bem gelada"> 🧊 Trincando de gelada</label>
+                        <label><input type="checkbox" name="bebida-opt" value="Temperatura ambiente"> 🌡️ Temperatura ambiente (sem gelo)</label>
+                        <label><input type="checkbox" name="bebida-opt" value="Enviar copo descartável com gelo"> 🥤 Enviar copo com gelo e limão</label>
+                        <label><input type="checkbox" name="bebida-opt" value="Enviar canudo"> 🥤 Enviar canudo</label>
+                    </div>
+                </div>
+
+                <!-- CAMPO DE OBSERVAÇÃO LIVRE NO CAIXA -->
+                <div style="background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
+                    <strong style="color: #333; display: block; margin-bottom: 6px;">📝 Observação Exclusiva (Opcional):</strong>
+                    <input type="text" id="caixa-modal-obs" placeholder="Ex: Cortar ao meio, caprichar..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: 'Inter', sans-serif;">
+                </div>
+
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px; flex-shrink: 0;">
+                <button class="btn-secondary" onclick="fecharModal()" style="flex: 1; padding: 12px; background: #e9ecef; color: #495057; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Inter', sans-serif;">Cancelar (ESC)</button>
+                <button class="btn-primary" onclick="confirmarAdicao()" style="flex: 2; padding: 12px; background: var(--cor-marca); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Inter', sans-serif;">Confirmar Receita</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE PAGAMENTO ATUALIZADO (COM NOME E ENDEREÇO DA ENTREGA) -->
+    <div id="modal-pagamento" class="modal-overlay" style="display: none; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: #ffffff; padding: 25px; border-radius: 16px; max-width: 450px; width: 95%; text-align: left; box-shadow: 0 10px 40px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto;">
+            <h3 style="color: var(--cor-marca); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; text-align: center; font-size: 20px;">💰 Fechamento de Venda</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: bold; color: #555;">Tipo de Atendimento:</label>
+                <select id="pedido-tipo" style="width: 100%; padding: 10px; margin-top: 5px; font-weight: bold; border: 1px solid #ccc; border-radius: 6px; font-family: 'Inter', sans-serif;" onchange="alternarTipoPedido()">
+                    <option value="Balcão">🏪 Balcão (Retirada ou Salão - Grátis)</option>
+                    <option value="Entrega">🛵 Entrega (Motoboy - Cobrar Taxa)</option>
+                </select>
+            </div>
+
+            <!-- NOVA ÁREA: DADOS DE ENTREGA (SÓ APARECE SE SELECIONAR ENTREGA) -->
+            <div id="div-dados-entrega" style="display: none; margin-bottom: 15px; background: #f0f8ff; padding: 12px; border-radius: 6px; border: 1px solid #b8daff;">
+                <label style="font-size: 13px; font-weight: bold; color: #004085;">Taxa de Entrega (Motoboy):</label>
+                <input type="number" id="taxa-entrega" style="width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 12px; font-weight: bold; border: 1px solid #ccc; border-radius: 6px; font-family: 'Inter', sans-serif;" placeholder="R$ 0.00" step="0.50" oninput="calcularTotalComEntrega()">
                 
-                <!-- SEÇÃO 3: ACOMPANHAMENTOS -->
-                <label style="color: #4a0072; font-weight: bold; display: block; margin-bottom: 5px;">🍓 ACOMPANHAMENTOS (Escolha até 5):</label>
-                <div class="checkbox-group" style="grid-template-columns: 1fr; gap: 6px;">
-                    <label><input type="checkbox" name="acompanhamento" value="Gergelim torrado"> Gergelim torrado</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Granola"> Granola</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Amendoim"> Amendoim</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Castanha de Caju"> Castanha de Caju</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Flocos de Coco"> Flocos de Coco</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Leite em Pó"> Leite em Pó</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Farinha Láctea"> Farinha Láctea</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Chocoball"> Chocoball</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Granulado Colorido"> Granulado Colorido</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Confete"> Confete</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Ovomaltine"> Ovomaltine</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Gotas de Chocolate"> Gotas de Chocolate</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Doce de Leite"> Doce de Leite</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Tubete"> Tubete</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Paçoquinha"> Paçoquinha</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Jujuba"> Jujuba</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Marshmallow"> Marshmallow</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Fini Cobrinha Azedinha"> Fini Cobrinha Azedinha</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Nutella"> Nutella</label>
-                    <label><input type="checkbox" name="acompanhamento" value="Xarope de Guaraná"> Xarope de Guaraná</label>
+                <label style="font-size: 13px; font-weight: bold; color: #004085;">Nome do Cliente:</label>
+                <input type="text" id="caixa-nome-cliente" style="width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 12px; font-weight: bold; border: 1px solid #ccc; border-radius: 6px; font-family: 'Inter', sans-serif;" placeholder="Ex: João da Silva">
+
+                <label style="font-size: 13px; font-weight: bold; color: #004085;">Endereço Completo:</label>
+                <input type="text" id="caixa-endereco-entrega" style="width: 100%; padding: 10px; margin-top: 5px; font-weight: bold; border: 1px solid #ccc; border-radius: 6px; font-family: 'Inter', sans-serif;" placeholder="Rua, Número, Bairro, Referência">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: bold; color: #555;">Forma de Pagamento:</label>
+                <select id="pagamento-metodo" style="width: 100%; padding: 10px; margin-top: 5px; font-weight: bold; border: 1px solid #ccc; border-radius: 6px; font-family: 'Inter', sans-serif;" onchange="alternarCampoTroco()">
+                    <option value="Dinheiro">💵 Dinheiro</option>
+                    <option value="PIX">⚡ PIX</option>
+                    <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                    <option value="Cartão de Débito">💳 Cartão de Débito</option>
+                </select>
+            </div>
+
+            <div id="div-calculo-troco" style="background: #fafafa; padding: 12px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 15px;">
+                <label style="font-size: 13px; font-weight: bold; color: #555;">Valor Recebido em Dinheiro:</label>
+                <input type="number" id="pagamento-recebido" style="width: 100%; padding: 10px; margin-top: 5px; font-size: 16px; font-weight: bold; border: 1px solid #ccc; border-radius: 6px; font-family: 'Inter', sans-serif;" placeholder="Ex: 50.00" step="0.50" oninput="calcularTroco()">
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 16px; font-weight: bold;">
+                    <span>Troco a Devolver:</span>
+                    <strong id="pagamento-troco" style="color: var(--cor-marca);">R$ 0.00</strong>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn-modal-cancelar" onclick="fecharModal()">Cancelar (ESC)</button>
-                <button class="btn-modal-confirmar" onclick="confirmarAdicao()">Confirmar Receita</button>
+
+            <div style="margin-bottom: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+                <label style="font-size: 13px; font-weight: bold; color: var(--cor-marca);">🎁 Fidelidade (WhatsApp do Cliente):</label>
+                <div style="display: flex; gap: 8px; margin-top: 5px;">
+                    <input type="text" id="telefone-fidelidade" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: 'Inter', sans-serif;" placeholder="(00) 90000-0000" maxlength="15">
+                    <button onclick="verificarFidelidade()" style="background: var(--cor-marca); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Inter', sans-serif;">Checar</button>
+                </div>
+                <small id="status-fidelidade" style="color: #666; display: block; margin-top: 5px; font-size: 12px;">Digite o número para checar os pontos...</small>
+            </div>
+
+            <div style="background: #f0e6f6; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 15px; border: 1px solid #e0a8ff;">
+                <span style="font-size: 14px; color: var(--texto-escuro);">Total Final:</span>
+                <strong id="modal-pagamento-total" style="font-size: 24px; color: var(--cor-marca); display: block;">R$ 0.00</strong>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="fecharModalPagamento()" style="flex: 1; padding: 12px; background: #e9ecef; color: #495057; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Inter', sans-serif;">Voltar (ESC)</button>
+                <button onclick="confirmarVendaComPagamento()" style="flex: 2; padding: 12px; background: var(--cor-marca); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; font-family: 'Inter', sans-serif;">✔ Concluir Venda</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE MEIO DE PAGAMENTO -->
-    <div id="modal-pagamento" class="modal-overlay">
-        <div class="modal-box" style="max-width: 380px;">
-            <h2>Fechar e Pagar</h2>
-            
-            <div style="background: #fdf2fe; padding: 12px; border-radius: 8px; border: 1px solid #eeb4ff; margin-bottom: 15px;">
-                <label style="font-weight:bold; display:block; color: #4a0072;">🎁 Clube Fidelidade (WhatsApp):</label>
-                <div style="display:flex; gap:5px; margin-top: 5px;">
-                    <input type="text" id="telefone-fidelidade" class="modal-select" placeholder="Ex: 11999998888" style="height:35px; font-size:14px; margin-bottom: 0;">
-                    <button onclick="verificarFidelidade()" style="background:#0077b6; color:white; border:none; border-radius:4px; padding:0 10px; cursor:pointer; font-weight:bold;">Consultar</button>
-                </div>
-                <div id="status-fidelidade" style="font-size:13px; color:#4a0072; font-weight:bold; margin-top:8px;">Digite o número para checar os pontos...</div>
-            </div>
-
-            <label style="font-weight:bold; display:block; margin-top:5px;">Tipo de Pedido:</label>
-            <select id="pedido-tipo" class="modal-select" onchange="alternarTipoPedido()" style="font-size:15px; font-weight:bold; height:38px; margin-bottom:12px;">
-                <option value="Balcão">🏪 Balcão / Retirada</option>
-                <option value="Entrega">🛵 Entrega (Motoboy)</option>
-            </select>
-
-            <div id="div-taxa-entrega" style="display:none; margin-bottom:12px;">
-                <label style="font-weight:bold; display:block;">Taxa de Entrega (R$):</label>
-                <input type="number" id="taxa-entrega" class="modal-select" placeholder="R$ 0.00" step="0.50" oninput="calcularTotalComEntrega()" style="height:35px; font-size:16px;">
-            </div>
-
-            <p style="font-size: 16px; margin-top:10px; border-top:1px dashed #ddd; padding-top:10px;">Total da Venda: <strong id="modal-pagamento-total" style="color:#4a0072; font-size: 20px;">R$ 0.00</strong></p>
-            
-            <label style="font-weight:bold; display:block; margin-top:15px;">Forma de Pagamento:</label>
-            <select id="pagamento-metodo" class="modal-select" onchange="alternarCampoTroco()" style="font-size:15px; font-weight:bold; height:40px; margin-bottom:15px;">
-                <option value="Dinheiro">💵 Dinheiro</option>
-                <option value="PIX">⚡ PIX</option>
-                <option value="Cartão">💳 Cartão (Crédito/Débito)</option>
-            </select>
-
-            <div id="div-calculo-troco">
-                <label style="font-weight:bold; display:block;">Valor Entregue pelo Cliente:</label>
-                <input type="number" id="pagamento-recebido" class="modal-select" placeholder="R$ 0.00" step="0.01" oninput="calcularTroco()" style="height:35px; font-size:16px;">
-                <p style="font-size: 16px; margin-top:10px;">Troco a Devolver: <strong id="pagamento-troco" style="color:#2b8a3e; font-size:18px;">R$ 0.00</strong></p>
-            </div>
-
-            <div class="modal-actions" style="margin-top:25px;">
-                <button class="btn-modal-cancelar" onclick="fecharModalPagamento()">Voltar (ESC)</button>
-                <button class="btn-modal-confirmar" style="background:#2b9348;" onclick="confirmarVendaComPagamento()">✔ Concluir Venda</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DE SUCESSO -->
-    <div id="modal-sucesso" class="modal-overlay">
-        <div class="modal-box" style="max-width: 380px; text-align: center;">
+    <!-- MODAL DE SUCESSO ATUALIZADO (COM O BOTÃO DE IMPRESSÃO GIGANTE) -->
+    <div id="modal-sucesso" class="modal-overlay" style="display: none; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: #ffffff; padding: 35px; border-radius: 16px; max-width: 400px; width: 95%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
             <span style="font-size: 50px;">🎉</span>
-            <h2 style="color: #2b9348; margin-top: 10px;">Venda Concluída!</h2>
-            <p style="font-size: 14px; color: #555;">O pedido foi salvo com sucesso na nuvem e no banco local.</p>
+            <h2 style="color: #2b9348; margin: 10px 0;">Venda Concluída!</h2>
+            <p style="color: #555; font-size: 14px; margin-bottom: 20px;">O pedido foi salvo e já está na tela da cozinha.</p>
             
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px dashed #ced4da; text-align: left;">
-                <label style="font-weight: bold; font-size: 13px; display: block; margin-bottom: 5px;">📲 Enviar Comprovante por WhatsApp?</label>
-                <input type="text" id="whatsapp-cliente" class="modal-select" placeholder="DDD + Número" style="height: 38px; font-size: 14px; margin-top: 0;">
-                <button onclick="enviarCupomWhatsApp()" style="background: #25d366; color: white; border: none; width: 100%; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    💬 Enviar Notinha no WhatsApp
-                </button>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; text-align: left;">
+                <label style="font-size: 12px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">📱 Enviar cupom digital no WhatsApp:</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="whatsapp-cliente" placeholder="(00) 90000-0000" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: 'Inter', sans-serif;">
+                    <button onclick="enviarCupomWhatsApp()" style="background: #25d366; color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Inter', sans-serif;">Enviar 💬</button>
+                </div>
             </div>
 
-            <button class="btn-modal-cancelar" onclick="fecharModalSucesso()" style="width: 100%; background: #4a0072; color: white;">⚡ Próximo Atendimento (ESC)</button>
+            <!-- NOVOS BOTÕES DE IMPRESSÃO RÁPIDA -->
+            <div style="display: flex; gap: 10px;">
+                <button onclick="imprimirUltimoPedido()" style="flex: 1; padding: 14px; background: #000; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; font-family: 'Inter', sans-serif;">🖨️ Imprimir</button>
+                <button onclick="fecharModalSucesso()" style="flex: 1; padding: 14px; background: var(--cor-marca); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; font-family: 'Inter', sans-serif;">Novo (ESC)</button>
+            </div>
         </div>
     </div>
 

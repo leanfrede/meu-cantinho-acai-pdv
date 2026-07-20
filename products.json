@@ -7,7 +7,7 @@
     "available": true,
     "usuarioAtividade": "Sócio A",
     "dataAtividade": "2026-07-16T23:43:53.897Z",
-    "estoque": 58
+    "estoque": 54
   },
   {
     "id": 3,
@@ -16,13 +16,15 @@
     "price": 16,
     "available": true,
     "usuarioAtividade": "Sócio A",
-    "dataAtividade": "2026-07-13T03:27:22.432Z"
+    "dataAtividade": "2026-07-13T03:27:22.432Z",
+    "estoque": 49
   },
   {
     "id": 4,
     "name": "Açaí Copo 500ml",
     "category": "Açaí",
-    "price": 24
+    "price": 24,
+    "estoque": 49
   },
   {
     "id": 5,
@@ -234,7 +236,8 @@
     "id": 39,
     "name": "Tapioca Carne de Sol",
     "category": "Tapiocas",
-    "price": 15.49
+    "price": 15.49,
+    "estoque": 49
   },
   {
     "id": 40,
@@ -244,5 +247,35 @@
     "available": true,
     "usuarioAtividade": "Sócio B",
     "dataAtividade": "2026-07-14T00:12:39.860Z"
+  },
+  {
+    "id": 41,
+    "name": "Açaí de 1L",
+    "category": "Açaí",
+    "price": 48,
+    "estoque": 50,
+    "available": true,
+    "usuarioAtividade": "Sócio A",
+    "dataAtividade": "2026-07-19T17:05:41.619Z"
+  },
+  {
+    "id": 42,
+    "name": "Creme de Oreo",
+    "category": "Cremes",
+    "price": 0,
+    "estoque": 50,
+    "available": true,
+    "usuarioAtividade": "Sócio A",
+    "dataAtividade": "2026-07-19T17:07:25.392Z"
+  },
+  {
+    "id": 43,
+    "name": "Crepioca Fitness",
+    "category": "Crepiocas",
+    "price": 16.9,
+    "estoque": 49,
+    "available": true,
+    "usuarioAtividade": "Sócio B",
+    "dataAtividade": "2026-07-20T01:29:43.432Z"
   }
 ]

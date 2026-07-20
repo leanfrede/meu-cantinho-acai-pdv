@@ -741,5 +741,273 @@
     "detalheTroco": "Troco para: 100",
     "data": "2026-07-18T02:53:25.232Z",
     "pontosAtuais": 7
+  },
+  {
+    "id": 39,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "obs": "Cremes: Creme de Ninho, Apenas Açaí Puro (Sem Creme) | Cob: Mel, Fini Bananas | Acomps: Granola, Amendoim, Castanha de Caju, Flocos de Coco, Farinha Láctea",
+        "imgUrl": "https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=400",
+        "cremes": [
+          "Creme de Ninho",
+          "Apenas Açaí Puro (Sem Creme)"
+        ],
+        "coberturas": [
+          "Mel",
+          "Fini Bananas"
+        ],
+        "acomp": [
+          "Granola",
+          "Amendoim",
+          "Castanha de Caju",
+          "Flocos de Coco",
+          "Farinha Láctea"
+        ]
+      }
+    ],
+    "total": 13,
+    "formaPagamento": "Dinheiro (Troco para: 50)",
+    "valorRecebido": 13,
+    "troco": 0,
+    "tipoPedido": "Entrega (Endereço: Rua Edite Leite Noronha, 178)",
+    "taxaEntrega": 3,
+    "clienteFidelidade": "84986260856",
+    "status": "Pronto",
+    "origem": "Online",
+    "nomeClienteOnline": "Frederico",
+    "detalheTroco": "Troco para: 50",
+    "data": "2026-07-19T16:57:09.868Z",
+    "pontosAtuais": 8
+  },
+  {
+    "id": 40,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "category": "Açaí",
+        "obs": "Cremes: Creme de Ninho, Apenas Açaí Puro (Sem Creme) | Cob: Leite Condensado, Fini Bananas | Acomps: Granola, Gergelim torrado, Amendoim, Castanha de Caju, Doce de Leite | Obs: Por favor, caprichar no doce de leite.",
+        "cremes": [
+          "Creme de Ninho",
+          "Apenas Açaí Puro (Sem Creme)"
+        ],
+        "coberturas": [
+          "Leite Condensado",
+          "Fini Bananas"
+        ],
+        "acompanhamentos": [
+          "Granola",
+          "Gergelim torrado",
+          "Amendoim",
+          "Castanha de Caju",
+          "Doce de Leite"
+        ],
+        "tapiocaOpt": [],
+        "bebidaOpt": [],
+        "obsLivre": "Por favor, caprichar no doce de leite."
+      },
+      {
+        "id": 39,
+        "name": "Tapioca Carne de Sol",
+        "price": 15.49,
+        "category": "Tapiocas",
+        "obs": "Preparo: Massa macia, Sem cebola, Caprichar no recheio | Obs: Tem como cortar ela ao meio, pois é para mim e minha filha.",
+        "cremes": [],
+        "coberturas": [],
+        "acompanhamentos": [],
+        "tapiocaOpt": [
+          "Massa macia",
+          "Sem cebola",
+          "Caprichar no recheio"
+        ],
+        "bebidaOpt": [],
+        "obsLivre": "Tem como cortar ela ao meio, pois é para mim e minha filha."
+      }
+    ],
+    "total": 28.49,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 100,
+    "troco": 71.51,
+    "tipoPedido": "Entrega",
+    "taxaEntrega": 3,
+    "clienteFidelidade": null,
+    "status": "Pronto",
+    "origem": "Balcão",
+    "nomeClienteOnline": null,
+    "detalheTroco": null,
+    "data": "2026-07-20T00:13:40.249Z"
+  },
+  {
+    "id": 41,
+    "itens": [
+      {
+        "id": 4,
+        "name": "Açaí Copo 500ml",
+        "price": 24,
+        "category": "Açaí",
+        "obs": "Cremes: Creme de Ninho, Creme de Ovomaltine | Cob: Mel, Calda de Morango | Acomps: Gergelim torrado, Castanha de Caju",
+        "cremes": [
+          "Creme de Ninho",
+          "Creme de Ovomaltine"
+        ],
+        "coberturas": [
+          "Mel",
+          "Calda de Morango"
+        ],
+        "acompanhamentos": [
+          "Gergelim torrado",
+          "Castanha de Caju"
+        ],
+        "tapiocaOpt": [],
+        "bebidaOpt": [],
+        "obsLivre": ""
+      }
+    ],
+    "total": 27,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 100,
+    "troco": 73,
+    "tipoPedido": "Entrega",
+    "taxaEntrega": 3,
+    "clienteFidelidade": null,
+    "status": "Pronto",
+    "origem": "Balcão",
+    "nomeClienteOnline": null,
+    "detalheTroco": null,
+    "data": "2026-07-20T00:46:59.234Z"
+  },
+  {
+    "id": 42,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "category": "Açaí",
+        "obs": "Cremes: Creme de Paçoca, Creme de Cupuaçu | Cob: Leite Condensado, Calda de Chocolate | Acomps: Flocos de Coco, Farinha Láctea",
+        "cremes": [
+          "Creme de Paçoca",
+          "Creme de Cupuaçu"
+        ],
+        "coberturas": [
+          "Leite Condensado",
+          "Calda de Chocolate"
+        ],
+        "acompanhamentos": [
+          "Flocos de Coco",
+          "Farinha Láctea"
+        ],
+        "tapiocaOpt": [],
+        "bebidaOpt": [],
+        "obsLivre": ""
+      }
+    ],
+    "total": 13,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 100,
+    "troco": 87,
+    "tipoPedido": "Entrega (Endereço: Rua Edite Leite Noranha, 178 Betel)",
+    "taxaEntrega": 3,
+    "clienteFidelidade": null,
+    "status": "Pronto",
+    "origem": "Balcão",
+    "nomeClienteOnline": "Frederico",
+    "detalheTroco": null,
+    "data": "2026-07-20T00:55:33.431Z"
+  },
+  {
+    "id": 43,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "category": "Açaí",
+        "obs": "Cremes: Apenas Açaí Puro (Sem Creme) | Cob: Fini Dentaduras | Acomps: Granola",
+        "cremes": [
+          "Apenas Açaí Puro (Sem Creme)"
+        ],
+        "coberturas": [
+          "Fini Dentaduras"
+        ],
+        "acompanhamentos": [
+          "Granola"
+        ],
+        "tapiocaOpt": [],
+        "bebidaOpt": [],
+        "obsLivre": ""
+      }
+    ],
+    "total": 10,
+    "formaPagamento": "PIX",
+    "valorRecebido": 10,
+    "troco": 0,
+    "tipoPedido": "Balcão",
+    "taxaEntrega": 0,
+    "clienteFidelidade": null,
+    "status": "Pronto",
+    "origem": "Balcão",
+    "nomeClienteOnline": null,
+    "detalheTroco": null,
+    "data": "2026-07-20T01:07:26.844Z"
+  },
+  {
+    "id": 44,
+    "itens": [
+      {
+        "id": 3,
+        "name": "Açaí Copo 300ml",
+        "price": 16,
+        "category": "Açaí",
+        "obs": "Cremes: Creme de Ninho, Creme de Ovomaltine | Cob: Calda de Chocolate, Fini Dentaduras | Acomps: Amendoim, Farinha Láctea",
+        "cremes": [
+          "Creme de Ninho",
+          "Creme de Ovomaltine"
+        ],
+        "coberturas": [
+          "Calda de Chocolate",
+          "Fini Dentaduras"
+        ],
+        "acompanhamentos": [
+          "Amendoim",
+          "Farinha Láctea"
+        ],
+        "tapiocaOpt": [],
+        "bebidaOpt": [],
+        "obsLivre": ""
+      },
+      {
+        "id": 43,
+        "name": "Crepioca Fitness",
+        "price": 16.9,
+        "category": "Crepiocas",
+        "obs": "Preparo: Com manteiga da terra, Caprichar no recheio",
+        "cremes": [],
+        "coberturas": [],
+        "acompanhamentos": [],
+        "tapiocaOpt": [
+          "Com manteiga da terra",
+          "Caprichar no recheio"
+        ],
+        "bebidaOpt": [],
+        "obsLivre": ""
+      }
+    ],
+    "total": 35.9,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 100,
+    "troco": 64.1,
+    "tipoPedido": "Entrega (Endereço: Rua Edite Leite Noronha, 178)",
+    "taxaEntrega": 3,
+    "clienteFidelidade": null,
+    "status": "Pronto",
+    "origem": "Balcão",
+    "nomeClienteOnline": "Frederico",
+    "detalheTroco": null,
+    "data": "2026-07-20T01:51:38.701Z"
   }
 ]

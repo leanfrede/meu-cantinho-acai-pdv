@@ -4,99 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Menu - Meu Cantinho Açaí</title>
-    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f7f7f7; margin: 0; padding-bottom: 120px; font-family: 'Inter', sans-serif; color: #3e3e3e; }
+        /* NOVA PALETA DE CORES (AÇAÍ THEME) */
+        :root {
+            --bg-principal: #1a0b2e; 
+            --bg-cards: #2d164f; 
+            --cor-marca: #7209b7; 
+            --cor-marca-hover: #b5179e; 
+            --verde-sucesso: #4cc9f0; 
+            --texto-claro: #f8f9fa;
+            --texto-escuro: #1a1a1a;
+            --borda-suave: rgba(255,255,255,0.1);
+        }
+
+        body { background-color: var(--bg-principal); margin: 0; padding-bottom: 120px; font-family: 'Inter', sans-serif; color: var(--texto-claro); }
         
-        .hero-banner { 
-            height: 180px; 
-            background-image: url('https://images.unsplash.com/photo-1553177595-4de2bb0842b9?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'); 
-            background-size: cover; 
-            background-position: center; 
-            position: relative;
-        }
-        .hero-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6));
-        }
-        .loja-header { 
-            position: relative; 
-            margin-top: -50px; 
-            padding: 0 20px; 
-            text-align: center; 
-        }
-        .loja-logo { 
-            width: 100px; height: 100px; 
-            background: #fff; 
-            border-radius: 50%; 
-            display: inline-flex; justify-content: center; align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            border: 4px solid #fff;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-        .loja-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .loja-header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #1a1a1a; letter-spacing: -0.5px; }
-        .loja-header p { margin: 5px 0 20px 0; font-size: 14px; color: #717171; }
+        .hero-banner { height: 180px; background-image: url('https://images.unsplash.com/photo-1553177595-4de2bb0842b9?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'); background-size: cover; background-position: center; position: relative; }
+        .hero-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(26, 11, 46, 0.1), var(--bg-principal)); }
+        
+        .loja-header { position: relative; margin-top: -50px; padding: 0 20px; text-align: center; }
+        .loja-logo { width: 100px; height: 100px; background: #fff; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 4px solid var(--bg-cards); margin-bottom: 10px; overflow: hidden; }
+        .loja-logo img { width: 100%; height: 100%; object-fit: cover; }
+        .loja-header h1 { margin: 0; font-size: 24px; font-weight: 800; color: var(--texto-claro); letter-spacing: -0.5px; }
+        .loja-header p { margin: 5px 0 20px 0; font-size: 14px; color: #aaa; }
         
         .cli-container { max-width: 600px; margin: 0 auto; padding: 0 15px; }
         
-        .cli-step-box { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.03); margin-bottom: 20px; }
-        .cli-step-box h2 { font-size: 17px; color: #1a1a1a; margin-top: 0; margin-bottom: 15px; font-weight: 800; }
+        /* CAIXAS DE FORMULÁRIO E CARRINHO */
+        .cli-step-box { background: var(--bg-cards); padding: 20px; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); margin-bottom: 20px; border: 1px solid var(--borda-suave); }
+        .cli-step-box h2 { font-size: 17px; color: var(--texto-claro); margin-top: 0; margin-bottom: 15px; font-weight: 800; }
         
-        .form-input-cli { width: 100%; padding: 15px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 15px; font-family: 'Inter', sans-serif; box-sizing: border-box; margin-bottom: 12px; background: #fafafa; transition: 0.2s; outline: none;}
-        .form-input-cli:focus { border-color: #4a0072; background: #fff; box-shadow: 0 0 0 3px rgba(74, 0, 114, 0.1); }
+        .form-input-cli { width: 100%; padding: 15px; border: 1px solid var(--borda-suave); border-radius: 12px; font-size: 15px; font-family: 'Inter', sans-serif; box-sizing: border-box; margin-bottom: 12px; background: rgba(0,0,0,0.2); color: var(--texto-claro); transition: 0.2s; outline: none;}
+        .form-input-cli:focus { border-color: var(--verde-sucesso); box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2); }
+        .form-input-cli option { color: var(--texto-escuro); } /* Selects no mobile ficam melhor com texto escuro nativo */
         
-        .cli-prod-list { display: flex; flex-direction: column; gap: 15px; }
-        .cli-prod-card { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.2s; background: transparent; }
-        .cli-prod-card:last-child { border-bottom: none; }
-        .cli-prod-card:active { opacity: 0.7; }
+        /* LISTA DE PRODUTOS */
+        .cli-prod-list { display: flex; flex-direction: column; gap: 8px; }
+        .cli-prod-card { display: flex; align-items: center; gap: 15px; padding: 14px; border: 1px solid var(--borda-suave); border-radius: 16px; cursor: pointer; transition: all 0.2s ease; background: var(--bg-cards); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .cli-prod-card:active { transform: scale(0.98); border-color: var(--cor-marca-hover); }
         
         .cli-prod-info { flex: 1; }
-        .cli-prod-info h3 { margin: 0 0 6px 0; font-size: 16px; color: #1a1a1a; font-weight: 600; }
-        .cli-prod-info p { color: #717171; font-size: 13px; margin: 0 0 8px 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .cli-prod-price { font-weight: 600; color: #1a1a1a; font-size: 16px; }
+        .cli-prod-info h3 { margin: 0 0 6px 0; font-size: 16px; color: var(--texto-claro); font-weight: 700; }
+        .cli-prod-info p { color: #aaa; font-size: 13px; margin: 0 0 10px 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .cli-prod-price { font-weight: 800; color: var(--verde-sucesso); font-size: 15px; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 8px; display: inline-block; }
         
-        .cli-prod-image { width: 90px; height: 90px; border-radius: 12px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.08); background-color: #4a0072; }
+        .cli-prod-image { width: 90px; height: 90px; border-radius: 12px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.3); background-color: var(--cor-marca); flex-shrink: 0; }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: flex-end; z-index: 9999; backdrop-filter: blur(3px); }
-        .modal-box-ifood { background: white; width: 100%; max-width: 600px; max-height: 90vh; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 0; display: flex; flex-direction: column; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        /* MODAL DE PERSONALIZAÇÃO */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: flex-end; z-index: 9999; backdrop-filter: blur(5px); }
+        .modal-box-ifood { background: var(--bg-principal); width: 100%; max-width: 600px; max-height: 90vh; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 0; display: flex; flex-direction: column; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.5); border: 1px solid var(--borda-suave); }
         
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
-        .modal-img-topo { width: 100%; height: 180px; object-fit: cover; border-top-left-radius: 24px; border-top-right-radius: 24px; background-color: #4a0072; }
-        .modal-header { padding: 15px 20px 10px 20px; border-bottom: 1px solid #f0f0f0; }
-        .modal-header h2 { margin: 0 0 5px 0; font-size: 20px; color: #1a1a1a; }
-        .modal-header p { margin: 0; color: #717171; font-size: 13px; }
+        .modal-img-topo { width: 100%; height: 180px; object-fit: cover; border-top-left-radius: 24px; border-top-right-radius: 24px; background-color: var(--cor-marca); }
+        .modal-header { padding: 15px 20px 10px 20px; border-bottom: 1px solid var(--borda-suave); background: var(--bg-cards); }
+        .modal-header h2 { margin: 0 0 5px 0; font-size: 20px; color: var(--texto-claro); font-weight: 800; }
+        .modal-header p { margin: 0; color: #aaa; font-size: 13px; }
         
         .modal-scroll { padding: 20px; overflow-y: auto; flex: 1; }
         
-        .secao-receita { background: #fafafa; border: 1px solid #eaeaea; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-        .secao-titulo { color: #1a1a1a; font-weight: 800; font-size: 15px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;}
-        .secao-sub { color: #717171; font-size: 13px; margin-bottom: 15px; display: block; }
-        .badge-req { background: #e0e0e0; color: #3e3e3e; font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .secao-receita { background: rgba(0,0,0,0.2); border: 1px solid var(--borda-suave); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .secao-titulo { color: var(--texto-claro); font-weight: 800; font-size: 15px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;}
+        .secao-sub { color: #aaa; font-size: 13px; margin-bottom: 15px; display: block; }
+        .badge-req { background: rgba(255,255,255,0.1); color: var(--verde-sucesso); font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
         
-        .checkbox-group label { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; font-size: 15px; color: #3e3e3e; }
+        .checkbox-group label { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--borda-suave); cursor: pointer; font-size: 15px; color: var(--texto-claro); }
         .checkbox-group label:last-child { border-bottom: none; }
-        .checkbox-group input[type="checkbox"] { width: 20px; height: 20px; margin-right: 15px; accent-color: #4a0072; cursor: pointer; }
+        .checkbox-group input[type="checkbox"] { width: 22px; height: 22px; margin-right: 15px; accent-color: var(--cor-marca-hover); cursor: pointer; }
 
-        .modal-footer { padding: 15px 20px; border-top: 1px solid #eaeaea; background: #fff; display: flex; gap: 15px; }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid var(--borda-suave); background: var(--bg-cards); display: flex; gap: 15px; }
         
-        .btn-enviar-pedido { background: #ea1d2c; color: white; border: none; padding: 16px 20px; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.2s; width: 100%; display: flex; justify-content: space-between; align-items: center;}
-        .btn-enviar-pedido:active { transform: scale(0.98); }
-        .btn-modal-cancelar { background: #f0f0f0; color: #1a1a1a; border: none; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; width: 30%; }
-        .btn-modal-confirmar { background: #ea1d2c; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; flex: 1; }
+        .btn-enviar-pedido { background: var(--cor-marca); color: white; border: none; padding: 16px 20px; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; width: 100%; display: flex; justify-content: space-between; align-items: center;}
+        .btn-enviar-pedido:active { transform: scale(0.98); background: var(--cor-marca-hover); }
+        .btn-modal-cancelar { background: rgba(255,255,255,0.1); color: var(--texto-claro); border: 1px solid var(--borda-suave); padding: 14px; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; width: 30%; }
+        .btn-modal-confirmar { background: var(--cor-marca); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; flex: 1; }
         
-        /* Novos Estilos dos Botões do Carrinho */
-        .btn-editar-cli { background: transparent; border: none; color: #0077b6; cursor: pointer; font-size: 14px; font-weight: 600; margin-right: 12px; }
-        .btn-remover-cli { background: transparent; border: none; color: #ea1d2c; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-editar-cli { background: transparent; border: none; color: var(--verde-sucesso); cursor: pointer; font-size: 14px; font-weight: 800; margin-right: 12px; }
+        .btn-remover-cli { background: transparent; border: none; color: #ff4d6d; cursor: pointer; font-size: 14px; font-weight: 800; }
         
-        .cli-carrinho-float { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 12px 20px; box-sizing: border-box; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+        .cli-carrinho-float { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-cards); padding: 12px 20px; box-sizing: border-box; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); z-index: 1000; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--borda-suave); }
     </style>
 </head>
 <body>
@@ -104,7 +91,7 @@
     <div class="hero-banner"><div class="hero-overlay"></div></div>
     <div class="loja-header">
         <div class="loja-logo">
-            <img src="logo.jpg" alt="Meu Cantinho Açaí">
+            <img src="logo.jpg" alt="Meu Cantinho Açaí" onerror="this.style.display='none'">
         </div>
         <h1>Meu Cantinho Açaí</h1>
         <p>Açaí cremoso, do seu jeito, direto na sua casa!</p>
@@ -123,7 +110,7 @@
             </select>
             <input type="text" id="cli-endereco" class="form-input-cli" placeholder="Rua, Número, Bairro, Ref." style="display: none;">
 
-            <h2 style="margin-top: 15px; border-top: 1px solid #f0f0f0; padding-top: 15px;">Forma de Pagamento</h2>
+            <h2 style="margin-top: 15px; border-top: 1px solid var(--borda-suave); padding-top: 15px;">Forma de Pagamento</h2>
             <select id="cli-forma-pagamento" class="form-input-cli" onchange="aoMudarPagamento()" style="font-weight: 600;">
                 <option value="PIX">⚡ Pagar com PIX na entrega</option>
                 <option value="Cartão">💳 Cartão de Crédito/Débito (Maquininha)</option>
@@ -132,10 +119,10 @@
             <input type="text" id="cli-troco-para" class="form-input-cli" placeholder="Troco para quanto? (Ex: 50,00)" style="display: none;">
         </div>
 
-        <div class="cli-step-box" style="padding-bottom: 5px;">
-            <h2>Cardápio</h2>
+        <div class="cli-step-box" style="padding-bottom: 15px; background: transparent; box-shadow: none; border: none; padding-left: 0; padding-right: 0;">
+            <h2 style="font-size: 20px; margin-left: 5px; margin-bottom: 5px;">Nosso Cardápio</h2>
             <div id="cli-grid-produtos" class="cli-prod-list">
-                <p style="color: #666; text-align: center;">Carregando delícias...</p>
+                <p style="color: #aaa; text-align: center;">Carregando delícias...</p>
             </div>
         </div>
 
@@ -146,16 +133,18 @@
 
     </div>
 
+    <!-- BARRA FLUTUANTE DO CARRINHO -->
     <div class="cli-carrinho-float">
         <button class="btn-enviar-pedido" onclick="enviarPedidoOnline()">
             <span>Concluir Pedido</span>
             <span id="cli-total-float">R$ 0.00</span>
         </button>
         <div style="text-align: center; width: 100%;">
-            <span id="cli-resumo-float" style="font-size: 12px; color: #717171;">Adicione itens para começar</span>
+            <span id="cli-resumo-float" style="font-size: 12px; color: #aaa;">Adicione itens para começar</span>
         </div>
     </div>
 
+    <!-- MODAL DE PERSONALIZAÇÃO INTELIGENTE -->
     <div id="modal-produto-cli" class="modal-overlay">
         <div class="modal-box-ifood">
             <img id="modal-img-preview" src="" class="modal-img-topo" alt="Açaí">
@@ -167,7 +156,8 @@
 
             <div id="cli-modal-conteudo" class="modal-scroll">
                 
-                <div class="secao-receita">
+                <!-- CREMES -->
+                <div id="secao-cremes" class="secao-receita">
                     <div class="secao-titulo">🍨 Cremes para misturar <span class="badge-req">Até 2</span></div>
                     <span class="secao-sub">Escolha os sabores que vão compor a sua base.</span>
                     <div class="checkbox-group">
@@ -178,11 +168,12 @@
                         <label><input type="checkbox" name="cli-creme" value="Creme de Paçoca"> Creme de Paçoca</label>
                         <label><input type="checkbox" name="cli-creme" value="Creme de Nutella"> Creme de Nutella</label>
                         <label><input type="checkbox" name="cli-creme" value="Creme de Cupuaçu"> Creme de Cupuaçu</label>
-                        <label><input type="checkbox" name="cli-creme" value="Apenas Açaí Puro (Sem Creme)"> Apenas Açaí Puro</label>
+                        <label><input type="checkbox" name="cli-creme" value="Apenas Açaí Puro (Sem Creme)"> ⚡ Apenas Açaí Puro</label>
                     </div>
                 </div>
 
-                <div class="secao-receita">
+                <!-- COBERTURAS -->
+                <div id="secao-coberturas" class="secao-receita">
                     <div class="secao-titulo">🍫 Coberturas <span class="badge-req">Até 2</span></div>
                     <span class="secao-sub">Muito xarope e doçura por cima.</span>
                     <div class="checkbox-group">
@@ -195,7 +186,8 @@
                     </div>
                 </div>
                 
-                <div class="secao-receita">
+                <!-- ACOMPANHAMENTOS -->
+                <div id="secao-acomp" class="secao-receita">
                     <div class="secao-titulo">🍓 Acompanhamentos <span class="badge-req">Até 5</span></div>
                     <span class="secao-sub">Aquele toque crocante e frutas frescas.</span>
                     <div class="checkbox-group">
@@ -214,6 +206,40 @@
                         <label><input type="checkbox" name="cli-acomp" value="Nutella"> Nutella</label>
                     </div>
                 </div>
+
+                <!-- TAPIOCAS / CREPIOCAS -->
+                <div id="secao-tapioca" class="secao-receita" style="display: none;">
+                    <div class="secao-titulo">🥞 Opções de Preparo</div>
+                    <span class="secao-sub">Do jeito que você gosta, quentinha e caprichada.</span>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="cli-tapioca-opt" value="Bem tostada"> 🔥 Bem tostada / crocante</label>
+                        <label><input type="checkbox" name="cli-tapioca-opt" value="Massa macia"> ☁️ Massa mais macia</label>
+                        <label><input type="checkbox" name="cli-tapioca-opt" value="Com manteiga da terra"> 🧈 Passar Manteiga da Terra</label>
+                        <label><input type="checkbox" name="cli-tapioca-opt" value="Sem cebola"> 🚫 Sem cebola</label>
+                        <label><input type="checkbox" name="cli-tapioca-opt" value="Sem tomate"> 🚫 Sem tomate</label>
+                        <label><input type="checkbox" name="cli-tapioca-opt" value="Caprichar no recheio"> 🤤 Caprichar no recheio</label>
+                    </div>
+                </div>
+
+                <!-- BEBIDAS -->
+                <div id="secao-bebida" class="secao-receita" style="display: none;">
+                    <div class="secao-titulo">🥤 Preferência da Bebida</div>
+                    <span class="secao-sub">Como devemos mandar a sua bebida?</span>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="cli-bebida-opt" value="Bem gelada"> 🧊 Trincando de gelada</label>
+                        <label><input type="checkbox" name="cli-bebida-opt" value="Temperatura ambiente"> 🌡️ Temperatura ambiente (sem gelo)</label>
+                        <label><input type="checkbox" name="cli-bebida-opt" value="Enviar copo descartável com gelo"> 🥤 Enviar copo com gelo e limão</label>
+                        <label><input type="checkbox" name="cli-bebida-opt" value="Enviar canudo"> 🥤 Enviar canudo</label>
+                    </div>
+                </div>
+
+                <!-- CAMPO DE OBSERVAÇÃO LIVRE -->
+                <div class="secao-receita">
+                    <div class="secao-titulo">📝 Observação especial (Opcional)</div>
+                    <span class="secao-sub">Algum detalhe extra para este item?</span>
+                    <input type="text" id="cli-modal-obs" class="form-input-cli" placeholder="Ex: Caprichar, tirar algum ingrediente..." style="margin-top: 8px; margin-bottom: 0;">
+                </div>
+
             </div>
             
             <div class="modal-footer">
@@ -224,271 +250,186 @@
     </div>
 
     <script>
-        let cliCarrinho = [];
-        let prodCliAtual = null;
-        let taxaEntregaPadrao = 3.00; 
-        let produtosCarregados = [];
-        let cliIndexEdicao = null; // Memória de qual item está sendo editado!
+        let cliCarrinho = []; let prodCliAtual = null; let taxaEntregaPadrao = 3.00; let produtosCarregados = []; let cliIndexEdicao = null; 
 
         function gerarImagemProduto(nome, categoria) {
             const txt = (nome + " " + categoria).toLowerCase();
             if (txt.includes('200ml') || txt.includes('300ml')) return 'https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=400';
-            if (txt.includes('500ml') || txt.includes('700ml')) return 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg?auto=compress&cs=tinysrgb&w=400';
+            if (txt.includes('500ml') || txt.includes('700ml') || txt.includes('1l') || txt.includes('litro')) return 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg?auto=compress&cs=tinysrgb&w=400';
             if (txt.includes('tigela') || txt.includes('tradicional')) return 'https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=400';
             if (txt.includes('creme') || txt.includes('sorvete')) return 'https://images.pexels.com/photos/1362534/pexels-photo-1362534.jpeg?auto=compress&cs=tinysrgb&w=400';
-            if (txt.includes('tapioca') || txt.includes('crepe')) return 'https://images.pexels.com/photos/2227774/pexels-photo-2227774.jpeg?auto=compress&cs=tinysrgb&w=400';
+            if (txt.includes('tapioca') || txt.includes('crepe') || txt.includes('crepioca')) return 'https://images.pexels.com/photos/2227774/pexels-photo-2227774.jpeg?auto=compress&cs=tinysrgb&w=400';
             if (txt.includes('bebida') || txt.includes('suco') || txt.includes('água')) return 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=400';
             return 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg?auto=compress&cs=tinysrgb&w=400';
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const resConfig = await fetch('/api/config');
-                const config = await resConfig.json();
-                if (config.taxaEntregaPadrao !== undefined) {
-                    taxaEntregaPadrao = parseFloat(config.taxaEntregaPadrao);
-                    document.getElementById('lbl-taxa-combo').innerText = taxaEntregaPadrao.toFixed(2);
-                }
+                const resConfig = await fetch('/api/config'); const config = await resConfig.json();
+                if (config.taxaEntregaPadrao !== undefined) { taxaEntregaPadrao = parseFloat(config.taxaEntregaPadrao); document.getElementById('lbl-taxa-combo').innerText = taxaEntregaPadrao.toFixed(2); }
 
-                const res = await fetch('/api/products');
-                produtosCarregados = await res.json();
-                const grid = document.getElementById('cli-grid-produtos');
-                grid.innerHTML = '';
+                const res = await fetch('/api/products'); produtosCarregados = await res.json();
+                const grid = document.getElementById('cli-grid-produtos'); grid.innerHTML = '';
 
-                const disponiveis = produtosCarregados.filter(p => p.available !== false && (p.estoque === undefined || p.estoque > 0));
+                // FILTRA E ESCONDE OS ITENS INTERNOS (Insumos, Embalagens, etc)
+                const disponiveis = produtosCarregados.filter(p => 
+                    p.available !== false && (p.estoque === undefined || p.estoque > 0) &&
+                    p.category !== 'Adicionais' && p.category !== 'Coberturas' &&
+                    p.category !== 'Insumos' && p.category !== 'Embalagens'
+                );
 
-                disponiveis.forEach(p => {
-                    if(p.category === 'Açaí' || p.category === 'Cremes') {
-                        const imgUrl = gerarImagemProduto(p.name, p.category);
-                        const card = document.createElement('div');
-                        card.className = 'cli-prod-card';
-                        card.innerHTML = `
-                            <div class="cli-prod-info">
-                                <h3>${p.name}</h3>
-                                <p>Personalize com seus cremes, frutas e coberturas favoritas.</p>
-                                <span class="cli-prod-price">R$ ${p.price.toFixed(2)}</span>
-                            </div>
-                            <img src="${imgUrl}" class="cli-prod-image" alt="${p.name}" onerror="this.src='https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=400'">
-                        `;
-                        card.onclick = () => abrirModalCli(p, imgUrl);
-                        grid.appendChild(card);
+                disponiveis.sort((a, b) => a.name.localeCompare(b.name));
+
+                // ORDEM DE EXIBIÇÃO NO CARDÁPIO ONLINE
+                const ordemCategorias = ['Açaí', 'Cremes', 'Tapiocas', 'Crepiocas', 'Bebidas'];
+                const categoriasPresentes = [...new Set(disponiveis.map(p => p.category))];
+                
+                categoriasPresentes.sort((a, b) => {
+                    let indexA = ordemCategorias.indexOf(a); let indexB = ordemCategorias.indexOf(b);
+                    if (indexA === -1) indexA = 999; if (indexB === -1) indexB = 999;
+                    return indexA - indexB;
+                });
+
+                categoriasPresentes.forEach(categoria => {
+                    const produtosDaCategoria = disponiveis.filter(p => p.category === categoria);
+                    if (produtosDaCategoria.length > 0) {
+                        let icone = '✨';
+                        if (categoria === 'Açaí') icone = '🟣'; if (categoria === 'Cremes') icone = '🍨';
+                        if (categoria === 'Tapiocas') icone = '🥞'; if (categoria === 'Crepiocas') icone = '🍳';
+                        if (categoria === 'Bebidas') icone = '🥤';
+
+                        // HEADER DA CATEGORIA DARK THEME
+                        const divTitulo = document.createElement('div'); divTitulo.style = "margin-top: 25px; margin-bottom: 15px; width: 100%;";
+                        divTitulo.innerHTML = `<h3 style="margin: 0; color: #fff; font-size: 18px; font-weight: 800; background: var(--cor-marca); padding: 10px 16px; border-radius: 10px; border-left: 6px solid var(--verde-sucesso); box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${icone} ${categoria}</h3>`;
+                        grid.appendChild(divTitulo);
+
+                        produtosDaCategoria.forEach(p => {
+                            const imgUrl = gerarImagemProduto(p.name, p.category);
+                            const card = document.createElement('div'); card.className = 'cli-prod-card';
+                            card.innerHTML = `<div class="cli-prod-info"><h3>${p.name}</h3><p>Personalize com seus ingredientes favoritos.</p><span class="cli-prod-price">R$ ${p.price.toFixed(2)}</span></div><img src="${imgUrl}" class="cli-prod-image" alt="${p.name}" onerror="this.src='https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=400'">`;
+                            card.onclick = () => abrirModalCli(p, imgUrl); grid.appendChild(card);
+                        });
                     }
                 });
+
+                if (disponiveis.length === 0) grid.innerHTML = '<p style="color: #aaa; text-align: center;">Nenhum produto disponível no momento.</p>';
             } catch(e) { console.error(e); }
         });
 
         function aoMudarTipoEntrega() {
-            const tipo = document.getElementById('cli-tipo-entrega').value;
-            const inputEnd = document.getElementById('cli-endereco');
-            if (tipo === 'Entrega') {
-                inputEnd.style.display = 'block';
-                inputEnd.focus();
-            } else {
-                inputEnd.style.display = 'none';
-            }
+            const tipo = document.getElementById('cli-tipo-entrega').value; const inputEnd = document.getElementById('cli-endereco');
+            if (tipo === 'Entrega') { inputEnd.style.display = 'block'; inputEnd.focus(); } else { inputEnd.style.display = 'none'; }
             atualizarCarrinhoCli(); 
         }
 
         function aoMudarPagamento() {
-            const forma = document.getElementById('cli-forma-pagamento').value;
-            const inputTroco = document.getElementById('cli-troco-para');
-            if (forma === 'Dinheiro') {
-                inputTroco.style.display = 'block';
-                inputTroco.focus();
-            } else { 
-                inputTroco.style.display = 'none'; 
-                inputTroco.value = ''; 
+            const forma = document.getElementById('cli-forma-pagamento').value; const inputTroco = document.getElementById('cli-troco-para');
+            if (forma === 'Dinheiro') { inputTroco.style.display = 'block'; inputTroco.focus(); } else { inputTroco.style.display = 'none'; inputTroco.value = ''; }
+        }
+
+        function abrirSecoesPorCategoria(categoria) {
+            const cat = (categoria || '').toLowerCase().trim();
+            const secCremes = document.getElementById('secao-cremes'); const secCob = document.getElementById('secao-coberturas'); const secAcomp = document.getElementById('secao-acomp'); const secTap = document.getElementById('secao-tapioca'); const secBeb = document.getElementById('secao-bebida');
+            if(secCremes) secCremes.style.display = 'none'; if(secCob) secCob.style.display = 'none'; if(secAcomp) secAcomp.style.display = 'none'; if(secTap) secTap.style.display = 'none'; if(secBeb) secBeb.style.display = 'none';
+
+            if (cat.includes('açaí') || cat.includes('acai') || cat.includes('creme') || cat === '') {
+                if(secCremes) secCremes.style.display = 'block'; if(secCob) secCob.style.display = 'block'; if(secAcomp) secAcomp.style.display = 'block';
+            } else if (cat.includes('tapioca') || cat.includes('crepe') || cat.includes('crepioca')) {
+                if(secTap) secTap.style.display = 'block';
+            } else if (cat.includes('bebida') || cat.includes('suco') || cat.includes('água')) {
+                if(secBeb) secBeb.style.display = 'block';
             }
         }
 
         function abrirModalCli(p, imgUrl) {
-            cliIndexEdicao = null; // Limpa edição anterior
-            prodCliAtual = p;
-            document.getElementById('cli-modal-titulo').innerText = p.name;
-            document.getElementById('modal-img-preview').src = imgUrl; 
-            
+            cliIndexEdicao = null; prodCliAtual = p;
+            document.getElementById('cli-modal-titulo').innerText = p.name; document.getElementById('modal-img-preview').src = imgUrl; 
+            abrirSecoesPorCategoria(p.category);
             document.querySelectorAll('#cli-modal-conteudo input[type="checkbox"]').forEach(cb => cb.checked = false);
-            document.querySelector('.btn-modal-confirmar').innerText = "Adicionar";
-            document.getElementById('modal-produto-cli').style.display = 'flex';
+            document.getElementById('cli-modal-obs').value = ''; document.querySelector('.btn-modal-confirmar').innerText = "Adicionar"; document.getElementById('modal-produto-cli').style.display = 'flex';
         }
 
-        function fecharModalCli() {
-            cliIndexEdicao = null;
-            document.querySelector('.btn-modal-confirmar').innerText = "Adicionar";
-            document.getElementById('modal-produto-cli').style.display = 'none';
-        }
+        function fecharModalCli() { cliIndexEdicao = null; document.querySelector('.btn-modal-confirmar').innerText = "Adicionar"; document.getElementById('modal-produto-cli').style.display = 'none'; }
 
-        // NOVA FUNÇÃO DE EDIÇÃO INTELIGENTE NO CLIENTE
         function editarCliItem(index) {
-            cliIndexEdicao = index;
-            const item = cliCarrinho[index];
-            prodCliAtual = produtosCarregados.find(p => p.id === item.id) || { id: item.id, name: item.name, price: item.price };
-            
-            document.getElementById('cli-modal-titulo').innerText = `Editar: ${item.name}`;
-            document.getElementById('modal-img-preview').src = item.imgUrl || gerarImagemProduto(item.name, 'Açaí');
-            
-            // Limpa as caixinhas para remarcar apenas as antigas
+            cliIndexEdicao = index; const item = cliCarrinho[index];
+            prodCliAtual = produtosCarregados.find(p => p.id === item.id) || { id: item.id, name: item.name, price: item.price, category: item.category };
+            document.getElementById('cli-modal-titulo').innerText = `Editar: ${item.name}`; document.getElementById('modal-img-preview').src = item.imgUrl || gerarImagemProduto(item.name, prodCliAtual.category || 'Açaí');
+            abrirSecoesPorCategoria(prodCliAtual.category);
             document.querySelectorAll('#cli-modal-conteudo input[type="checkbox"]').forEach(cb => cb.checked = false);
-            
             if(item.cremes) item.cremes.forEach(v => { const el = document.querySelector(`input[name="cli-creme"][value="${v}"]`); if(el) el.checked = true; });
             if(item.coberturas) item.coberturas.forEach(v => { const el = document.querySelector(`input[name="cli-cobertura"][value="${v}"]`); if(el) el.checked = true; });
             if(item.acomp) item.acomp.forEach(v => { const el = document.querySelector(`input[name="cli-acomp"][value="${v}"]`); if(el) el.checked = true; });
-            
-            document.querySelector('.btn-modal-confirmar').innerText = "✔ Salvar Alterações";
-            document.getElementById('modal-produto-cli').style.display = 'flex';
+            if(item.tapiocaOpt) item.tapiocaOpt.forEach(v => { const el = document.querySelector(`input[name="cli-tapioca-opt"][value="${v}"]`); if(el) el.checked = true; });
+            if(item.bebidaOpt) item.bebidaOpt.forEach(v => { const el = document.querySelector(`input[name="cli-bebida-opt"][value="${v}"]`); if(el) el.checked = true; });
+            document.getElementById('cli-modal-obs').value = item.obsLivre || '';
+            document.querySelector('.btn-modal-confirmar').innerText = "✔ Salvar Alterações"; document.getElementById('modal-produto-cli').style.display = 'flex';
         }
 
         function confirmarAdicaoCli() {
-            const cremes = Array.from(document.querySelectorAll('input[name="cli-creme"]:checked')).map(cb => cb.value);
-            const cob = Array.from(document.querySelectorAll('input[name="cli-cobertura"]:checked')).map(cb => cb.value);
-            const acomp = Array.from(document.querySelectorAll('input[name="cli-acomp"]:checked')).map(cb => cb.value);
+            const cat = (prodCliAtual.category || '').toLowerCase().trim(); let obs = ""; let cremes = [], cob = [], acomp = [], tapOpt = [], bebOpt = [];
 
-            if (cremes.length > 2) { alert("⚠️ Escolha no máximo 2 Cremes."); return; }
-            if (cob.length > 2) { alert("⚠️ Escolha no máximo 2 Coberturas."); return; }
-            if (acomp.length > 5) { alert("⚠️ Escolha no máximo 5 Acompanhamentos."); return; }
-
-            let obs = "";
-            if (cremes.length > 0) obs += `Cremes: ${cremes.join(', ')}`;
-            if (cob.length > 0) obs += (obs ? ' | ' : '') + `Cob: ${cob.join(', ')}`;
-            if (acomp.length > 0) obs += (obs ? ' | ' : '') + `Acomps: ${acomp.join(', ')}`;
-            if (!obs) obs = "Tradicional simples";
-
-            const novoItem = { 
-                id: prodCliAtual.id, 
-                name: prodCliAtual.name, 
-                price: prodCliAtual.price, 
-                obs: obs,
-                imgUrl: document.getElementById('modal-img-preview').src,
-                cremes: cremes,
-                coberturas: cob,
-                acomp: acomp
-            };
-
-            if (cliIndexEdicao !== null) {
-                cliCarrinho[cliIndexEdicao] = novoItem;
-                cliIndexEdicao = null;
-            } else {
-                cliCarrinho.push(novoItem);
+            if (cat.includes('açaí') || cat.includes('acai') || cat.includes('creme') || cat === '') {
+                cremes = Array.from(document.querySelectorAll('input[name="cli-creme"]:checked')).map(cb => cb.value); cob = Array.from(document.querySelectorAll('input[name="cli-cobertura"]:checked')).map(cb => cb.value); acomp = Array.from(document.querySelectorAll('input[name="cli-acomp"]:checked')).map(cb => cb.value);
+                if (cremes.length > 2) { alert("⚠️ Escolha no máximo 2 Cremes."); return; } if (cob.length > 2) { alert("⚠️ Escolha no máximo 2 Coberturas."); return; } if (acomp.length > 5) { alert("⚠️ Escolha no máximo 5 Acompanhamentos."); return; }
+                if (cremes.length > 0) obs += `Cremes: ${cremes.join(', ')}`; if (cob.length > 0) obs += (obs ? ' | ' : '') + `Cob: ${cob.join(', ')}`; if (acomp.length > 0) obs += (obs ? ' | ' : '') + `Acomps: ${acomp.join(', ')}`;
+            } else if (cat.includes('tapioca') || cat.includes('crepe') || cat.includes('crepioca')) {
+                tapOpt = Array.from(document.querySelectorAll('input[name="cli-tapioca-opt"]:checked')).map(cb => cb.value); if (tapOpt.length > 0) obs += `Preparo: ${tapOpt.join(', ')}`;
+            } else if (cat.includes('bebida') || cat.includes('suco') || cat.includes('água')) {
+                bebOpt = Array.from(document.querySelectorAll('input[name="cli-bebida-opt"]:checked')).map(cb => cb.value); if (bebOpt.length > 0) obs += `Preferência: ${bebOpt.join(', ')}`;
             }
 
-            atualizarCarrinhoCli();
-            fecharModalCli();
+            const obsTexto = document.getElementById('cli-modal-obs').value.trim(); if (obsTexto) obs += (obs ? ' | ' : '') + `Obs: ${obsTexto}`;
+            if (!obs) obs = (cat.includes('tapioca') || cat.includes('crepioca')) ? "Tradicional simples" : (cat.includes('bebida') ? "Bebida padrão" : "Tradicional simples");
+
+            const novoItem = { id: prodCliAtual.id, name: prodCliAtual.name, price: prodCliAtual.price, category: prodCliAtual.category, obs: obs, imgUrl: document.getElementById('modal-img-preview').src, cremes: cremes, coberturas: cob, acomp: acomp, tapiocaOpt: tapOpt, bebidaOpt: bebOpt, obsLivre: obsTexto };
+            if (cliIndexEdicao !== null) { cliCarrinho[cliIndexEdicao] = novoItem; cliIndexEdicao = null; } else { cliCarrinho.push(novoItem); }
+            atualizarCarrinhoCli(); fecharModalCli();
         }
 
         function atualizarCarrinhoCli() {
-            const box = document.getElementById('box-carrinho-cli');
-            const lista = document.getElementById('cli-lista-itens');
-            const resumoFloat = document.getElementById('cli-resumo-float');
-            const totalFloat = document.getElementById('cli-total-float');
-            const tipo = document.getElementById('cli-tipo-entrega').value;
-            
-            if (cliCarrinho.length === 0) {
-                box.style.display = 'none';
-                resumoFloat.innerText = "Adicione itens para começar";
-                totalFloat.innerText = "R$ 0.00";
-                return;
-            }
+            const box = document.getElementById('box-carrinho-cli'); const lista = document.getElementById('cli-lista-itens'); const resumoFloat = document.getElementById('cli-resumo-float'); const totalFloat = document.getElementById('cli-total-float'); const tipo = document.getElementById('cli-tipo-entrega').value;
+            if (cliCarrinho.length === 0) { box.style.display = 'none'; resumoFloat.innerText = "Adicione itens para começar"; totalFloat.innerText = "R$ 0.00"; return; }
 
-            box.style.display = 'block';
-            lista.innerHTML = '';
-            let subtotal = 0;
-
+            box.style.display = 'block'; lista.innerHTML = ''; let subtotal = 0;
             cliCarrinho.forEach((item, index) => {
-                subtotal += item.price;
-                const div = document.createElement('div');
-                div.style = "padding: 15px 0; border-bottom: 1px solid #f0f0f0;";
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
-                        <strong style="color:#1a1a1a; font-size:15px;">1x ${item.name}</strong>
-                        <span style="font-weight:600; color:#1a1a1a;">R$ ${item.price.toFixed(2)}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <small style="color:#717171; font-size:13px; line-height: 1.4; width: 65%;">${item.obs}</small>
-                        <div>
-                            <button class="btn-editar-cli" onclick="editarCliItem(${index})">Editar</button>
-                            <button class="btn-remover-cli" onclick="removerCliItem(${index})">Remover</button>
-                        </div>
-                    </div>
-                `;
+                subtotal += item.price; const div = document.createElement('div'); div.style = "padding: 15px 0; border-bottom: 1px solid var(--borda-suave);";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;"><strong style="color:var(--texto-claro); font-size:15px;">1x ${item.name}</strong><span style="font-weight:800; color:var(--verde-sucesso);">R$ ${item.price.toFixed(2)}</span></div><div style="display:flex; justify-content:space-between; align-items:flex-start;"><small style="color:#aaa; font-size:13px; line-height: 1.4; width: 65%;">${item.obs}</small><div><button class="btn-editar-cli" onclick="editarCliItem(${index})">Editar</button><button class="btn-remover-cli" onclick="removerCliItem(${index})">Remover</button></div></div>`;
                 lista.appendChild(div);
             });
 
-            const taxa = (tipo === 'Entrega') ? taxaEntregaPadrao : 0;
-            const totalGeral = subtotal + taxa;
-
-            if (tipo === 'Entrega') {
-                resumoFloat.innerText = `Subtotal R$ ${subtotal.toFixed(2)} + Taxa R$ ${taxa.toFixed(2)}`;
-            } else {
-                resumoFloat.innerText = `Retirada no Local (Grátis)`;
-            }
+            const taxa = (tipo === 'Entrega') ? taxaEntregaPadrao : 0; const totalGeral = subtotal + taxa;
+            if (tipo === 'Entrega') resumoFloat.innerText = `Subtotal R$ ${subtotal.toFixed(2)} + Taxa R$ ${taxa.toFixed(2)}`; else resumoFloat.innerText = `Retirada no Local (Grátis)`;
             totalFloat.innerText = `R$ ${totalGeral.toFixed(2)}`;
         }
 
-        function removerCliItem(i) {
-            cliCarrinho.splice(i, 1);
-            atualizarCarrinhoCli();
-        }
+        function removerCliItem(i) { cliCarrinho.splice(i, 1); atualizarCarrinhoCli(); }
 
         async function enviarPedidoOnline() {
-            const nome = document.getElementById('cli-nome').value.trim();
-            const fone = document.getElementById('cli-fone').value.replace(/\D/g, '');
-            const tipo = document.getElementById('cli-tipo-entrega').value;
-            const end = document.getElementById('cli-endereco').value.trim();
-            const formaPagto = document.getElementById('cli-forma-pagamento').value;
-            const trocoPara = document.getElementById('cli-troco-para').value.trim();
-
+            const nome = document.getElementById('cli-nome').value.trim(); const fone = document.getElementById('cli-fone').value.replace(/\D/g, ''); const tipo = document.getElementById('cli-tipo-entrega').value; const end = document.getElementById('cli-endereco').value.trim(); const formaPagto = document.getElementById('cli-forma-pagamento').value; const trocoPara = document.getElementById('cli-troco-para').value.trim();
             if (!nome || fone.length < 10) { alert("⚠️ Preencha seu Nome e um WhatsApp válido!"); return; }
             if (tipo === 'Entrega' && !end) { alert("⚠️ Preencha seu endereço de entrega completo!"); return; }
             if (cliCarrinho.length === 0) { alert("⚠️ Seu carrinho está vazio!"); return; }
 
-            const subtotal = cliCarrinho.reduce((acc, cur) => acc + cur.price, 0);
-            const taxa = (tipo === 'Entrega') ? taxaEntregaPadrao : 0;
-            const totalGeral = subtotal + taxa;
-
-            let pagtoTexto = formaPagto;
-            let detalheTrocoTexto = "";
-            if (formaPagto === 'Dinheiro') {
-                detalheTrocoTexto = trocoPara ? `Troco para: ${trocoPara}` : "Dinheiro (Sem troco)";
-                pagtoTexto = `Dinheiro (${detalheTrocoTexto})`;
-            } else if (formaPagto === 'Cartão') {
-                pagtoTexto = "Cartão (Levar Maquininha)";
-            } else if (formaPagto === 'PIX') {
-                pagtoTexto = "PIX";
-            }
+            const subtotal = cliCarrinho.reduce((acc, cur) => acc + cur.price, 0); const taxa = (tipo === 'Entrega') ? taxaEntregaPadrao : 0; const totalGeral = subtotal + taxa;
+            let pagtoTexto = formaPagto; let detalheTrocoTexto = "";
+            if (formaPagto === 'Dinheiro') { detalheTrocoTexto = trocoPara ? `Troco para: ${trocoPara}` : "Dinheiro (Sem troco)"; pagtoTexto = `Dinheiro (${detalheTrocoTexto})`; } 
+            else if (formaPagto === 'Cartão') { pagtoTexto = "Cartão (Levar Maquininha)"; } 
+            else if (formaPagto === 'PIX') { pagtoTexto = "PIX"; }
             
             const dadosPedido = {
-                itens: cliCarrinho, total: totalGeral, formaPagamento: pagtoTexto,
-                valorRecebido: totalGeral, troco: 0,
-                tipoPedido: tipo === 'Entrega' ? `Entrega (Endereço: ${end})` : 'Balcão (Retirada Online)',
-                taxaEntrega: taxa, clienteFidelidade: fone, status: 'Pendente', 
-                nomeClienteOnline: nome, telefoneOnline: fone, origem: 'Online', detalheTroco: detalheTrocoTexto,
-                data: new Date().toISOString()
+                itens: cliCarrinho, total: totalGeral, formaPagamento: pagtoTexto, valorRecebido: totalGeral, troco: 0,
+                tipoPedido: tipo === 'Entrega' ? `Entrega (Endereço: ${end})` : 'Balcão (Retirada Online)', taxaEntrega: taxa, clienteFidelidade: fone, 
+                status: 'Aguardando', nomeClienteOnline: nome, telefoneOnline: fone, origem: 'Online', detalheTroco: detalheTrocoTexto, data: new Date().toISOString()
             };
 
-            const btnEnviar = document.querySelector('.btn-enviar-pedido');
-            btnEnviar.innerText = "Enviando...";
-            btnEnviar.style.opacity = '0.7';
+            const btnEnviar = document.querySelector('.btn-enviar-pedido'); btnEnviar.innerText = "Enviando..."; btnEnviar.style.opacity = '0.7';
 
             try {
-                const res = await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Usuario': 'Cliente Web' },
-                    body: JSON.stringify(dadosPedido)
-                });
-
-                if (res.ok) {
-                    alert("🎉 Pedido Confirmado!\nValor: R$ " + totalGeral.toFixed(2) + "\n\nA loja recebeu seu pedido e vai começar a preparar. Entraremos em contato pelo WhatsApp!");
-                    window.location.reload();
-                } else {
-                    alert("❌ Erro ao enviar pedido. Tente novamente.");
-                    btnEnviar.innerHTML = `<span>Concluir Pedido</span> <span id="cli-total-float">R$ ${totalGeral.toFixed(2)}</span>`;
-                    btnEnviar.style.opacity = '1';
-                }
-            } catch (error) {
-                alert("❌ Erro de conexão.");
-                btnEnviar.innerHTML = `<span>Concluir Pedido</span> <span id="cli-total-float">R$ ${totalGeral.toFixed(2)}</span>`;
-                btnEnviar.style.opacity = '1';
-            }
+                const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Usuario': 'Cliente Web' }, body: JSON.stringify(dadosPedido) });
+                if (res.ok) { alert("🎉 Pedido Confirmado!\nValor: R$ " + totalGeral.toFixed(2) + "\n\nA loja recebeu seu pedido e vai começar a preparar. Entraremos em contato pelo WhatsApp!"); window.location.reload(); } 
+                else { alert("❌ Erro ao enviar pedido. Tente novamente."); btnEnviar.innerHTML = `<span>Concluir Pedido</span> <span id="cli-total-float">R$ ${totalGeral.toFixed(2)}</span>`; btnEnviar.style.opacity = '1'; }
+            } catch (error) { alert("❌ Erro de conexão."); btnEnviar.innerHTML = `<span>Concluir Pedido</span> <span id="cli-total-float">R$ ${totalGeral.toFixed(2)}</span>`; btnEnviar.style.opacity = '1'; }
         }
     </script>
 </body>

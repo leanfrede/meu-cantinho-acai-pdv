@@ -146,7 +146,8 @@ app.get('/api/orders', (req, res) => {
 });
 
 app.post('/api/orders', (req, res) => {
-    const { itens, total, formaPagamento, valorRecebido, troco, tipoPedido, taxaEntrega, clienteFidelidade, data, nomeClienteOnline, origem, detalheTroco } = req.body;
+    // 1. Recebemos o status enviado pelo Cardápio
+    const { itens, total, formaPagamento, valorRecebido, troco, tipoPedido, taxaEntrega, clienteFidelidade, data, nomeClienteOnline, origem, detalheTroco, status } = req.body;
     const fileData = fs.readFileSync(FILE_ORDERS, 'utf-8');
     const orders = JSON.parse(fileData);
     
@@ -172,7 +173,7 @@ app.post('/api/orders', (req, res) => {
         itens, total: parseFloat(total), formaPagamento, valorRecebido, troco,
         tipoPedido: tipoPedido || 'Balcão', taxaEntrega: taxaEntrega ? parseFloat(taxaEntrega) : 0,
         clienteFidelidade: clienteFidelidade || null,
-        status: 'Pendente', 
+        status: status || 'Pendente', // <--- A MÁGICA ACONTECE AQUI!
         origem: origem || 'Balcão',
         nomeClienteOnline: nomeClienteOnline || null,
         detalheTroco: detalheTroco || null,
