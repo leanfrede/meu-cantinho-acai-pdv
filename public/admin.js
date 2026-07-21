@@ -1,6 +1,11 @@
 const ORDERS_URL = 'http://localhost:3000/api/orders';
 const PRODUCTS_URL = 'http://localhost:3000/api/products';
 
+// =====================================================================
+// 🗝️ CHAVE MESTRA DO SÓCIO-DONO (Liberar permissão total na Nuvem)
+// =====================================================================
+const SECRET_TOKEN = "AcaiCantinho_2026_SecureKey!";
+
 let produtosCadastrados = []; // Guarda os produtos para facilitar a edição
 let produtoEditandoId = null; // Avisa o sistema se estamos editando ou criando um novo
 
@@ -98,6 +103,77 @@ document.getElementById('form-produto')?.addEventListener('submit', async (e) =>
     const nome = document.getElementById('nome-produto').value;
     const preco = document.getElementById('preco-produto').value;
     const categoria = document.getElementById('categoria-produto').value;
+
+    const pacoteDeDados = { 
+        name: nome, 
+        price: parseFloat(preco),
+        category: categoria 
+    };
+
+    try {
+        let response;
+        if (produtoEditandoId) {
+            // MODO EDIÇÃO: Atualiza com a Chave Mestra
+            response = await fetch(`${PRODUCTS_URL}/${produtoEditandoId}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-admin-token': SECRET_TOKEN // 🗝️ Chave aqui!
+                },
+                body: JSON.stringify(pacoteDeDados)
+            });
+            if (response.ok) cancelarEdicao();
+        } else {
+            // MODO CRIAÇÃO: Adiciona um novo com a Chave Mestra
+            response = await fetch(PRODUCTS_URL, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-admin-token': SECRET_TOKEN // 🗝️ Chave aqui!
+                },
+                body: JSON.stringify(pacoteDeDados)
+            });
+            if (response.ok) document.getElementById('form-produto').reset();
+        }
+        
+        if (!response.ok) {
+            const erro = await response.json();
+            alert(`Erro do Servidor: ${erro.error || 'Acesso Negado!'}`);
+            return;
+        }
+
+        carregarProdutos(); // Recarrega a lista somente se deu certo
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+        alert("Erro de comunicação com a Nuvem. Tente novamente.");
+    }
+});
+
+// Exclusão protegida e com verificação visual
+async function excluirProduto(id) {
+    if(confirm("Tem certeza que deseja excluir este produto da nuvem?")) {
+        try {
+            const response = await fetch(`${PRODUCTS_URL}/${id}`, { 
+                method: 'DELETE',
+                headers: {
+                    'x-admin-token': SECRET_TOKEN // 🗝️ Chave para liberar a exclusão na nuvem!
+                }
+            });
+
+            if (response.ok) {
+                carregarProdutos(); // Só apaga da tela se a nuvem autorizou e apagou de lá
+            } else {
+                const erro = await response.json();
+                alert(`🚫 Não foi possível excluir: ${erro.error || 'Acesso Negado.'}`);
+            }
+        } catch (error) {
+            console.error("Erro ao excluir:", error);
+            alert("Erro ao conectar com o banco na nuvem.");
+        }
+    }
+}
+
+// ... DAQUI PARA BAIXO AS SUAS FUNÇÕES DE CAIXA E VENDAS CONTINUAM INTACTAS! ...
 
     const pacoteDeDados = { 
         name: nome, 

@@ -7,7 +7,7 @@
     "available": true,
     "usuarioAtividade": "Sócio A",
     "dataAtividade": "2026-07-16T23:43:53.897Z",
-    "estoque": 54
+    "estoque": 53
   },
   {
     "id": 3,
@@ -31,7 +31,7 @@
     "name": "Açaí Copo 700ml",
     "category": "Açaí",
     "price": 34,
-    "estoque": 46
+    "estoque": 45
   },
   {
     "id": 6,
@@ -71,32 +71,8 @@
     "price": 0
   },
   {
-    "id": 12,
-    "name": "Leite Condensado",
-    "category": "Coberturas",
-    "price": 0
-  },
-  {
-    "id": 13,
-    "name": "Mel",
-    "category": "Coberturas",
-    "price": 0
-  },
-  {
     "id": 14,
     "name": "Calda de Chocolate",
-    "category": "Coberturas",
-    "price": 0
-  },
-  {
-    "id": 15,
-    "name": "Morango",
-    "category": "Coberturas",
-    "price": 0
-  },
-  {
-    "id": 16,
-    "name": "Cobertura Fini Dentaduras",
     "category": "Coberturas",
     "price": 0
   },
@@ -273,9 +249,19 @@
     "name": "Crepioca Fitness",
     "category": "Crepiocas",
     "price": 16.9,
-    "estoque": 49,
+    "estoque": 48,
     "available": true,
     "usuarioAtividade": "Sócio B",
     "dataAtividade": "2026-07-20T01:29:43.432Z"
+  },
+  {
+    "id": 44,
+    "name": "Mel",
+    "category": "Coberturas",
+    "price": 0,
+    "estoque": 50,
+    "available": true,
+    "usuarioAtividade": "Sócio A",
+    "dataAtividade": "2026-07-21T03:27:54.640Z"
   }
 ]

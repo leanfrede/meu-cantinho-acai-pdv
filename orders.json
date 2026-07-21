@@ -1009,5 +1009,96 @@
     "nomeClienteOnline": "Frederico",
     "detalheTroco": null,
     "data": "2026-07-20T01:51:38.701Z"
+  },
+  {
+    "id": 45,
+    "itens": [
+      {
+        "id": 1,
+        "name": "Açaí Copo 200ml ",
+        "price": 10,
+        "category": "Açaí",
+        "obs": "Cob: Leite Condensado, Calda de Chocolate | Acomps: Granola, Amendoim, Flocos de Coco",
+        "cremes": [],
+        "coberturas": [
+          "Leite Condensado",
+          "Calda de Chocolate"
+        ],
+        "acompanhamentos": [
+          "Granola",
+          "Amendoim",
+          "Flocos de Coco"
+        ],
+        "tapiocaOpt": [],
+        "bebidaOpt": [],
+        "obsLivre": ""
+      }
+    ],
+    "total": 13,
+    "formaPagamento": "Dinheiro",
+    "valorRecebido": 100,
+    "troco": 87,
+    "tipoPedido": "Entrega (Endereço: Rua Edite Leite Noronha, 178 Betel)",
+    "taxaEntrega": 3,
+    "clienteFidelidade": null,
+    "status": "Pronto",
+    "origem": "Balcão",
+    "nomeClienteOnline": "Frederico",
+    "detalheTroco": null,
+    "data": "2026-07-21T02:05:42.736Z"
+  },
+  {
+    "id": 46,
+    "itens": [
+      {
+        "id": 43,
+        "name": "Crepioca Fitness",
+        "price": 16.9,
+        "category": "Crepiocas",
+        "obs": "Preparo: Bem tostada, Massa macia",
+        "imgUrl": "https://images.pexels.com/photos/2227774/pexels-photo-2227774.jpeg?auto=compress&cs=tinysrgb&w=400",
+        "cremes": [],
+        "coberturas": [],
+        "acomp": [],
+        "tapiocaOpt": [
+          "Bem tostada",
+          "Massa macia"
+        ],
+        "bebidaOpt": [],
+        "obsLivre": ""
+      },
+      {
+        "id": 5,
+        "name": "Açaí Copo 700ml",
+        "price": 34,
+        "category": "Açaí",
+        "obs": "Cremes: Apenas Açaí Puro (Sem Creme) | Acomps: Granola, Doce de Leite",
+        "imgUrl": "https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg?auto=compress&cs=tinysrgb&w=400",
+        "cremes": [
+          "Apenas Açaí Puro (Sem Creme)"
+        ],
+        "coberturas": [],
+        "acomp": [
+          "Granola",
+          "Doce de Leite"
+        ],
+        "tapiocaOpt": [],
+        "bebidaOpt": [],
+        "obsLivre": ""
+      }
+    ],
+    "total": 50.9,
+    "formaPagamento": "PIX",
+    "valorRecebido": 50.9,
+    "troco": 0,
+    "tipoPedido": "Balcão (Retirada Online)",
+    "taxaEntrega": 0,
+    "clienteFidelidade": "84986260856",
+    "status": "Aguardando",
+    "origem": "Online",
+    "nomeClienteOnline": "Frederico",
+    "detalheTroco": null,
+    "data": "2026-07-21T02:07:27.367Z",
+    "pontosAtuais": 9
   }
 ]
