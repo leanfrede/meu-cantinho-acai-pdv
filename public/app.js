@@ -1,37 +1,143 @@
 // ==========================================================================
 // VARIÁVEIS GLOBAIS DO SISTEMA E INICIALIZAÇÃO
 // ==========================================================================
-let produtosTodos = []; let carrinho = []; let categoriaAtual = 'Açaí'; let produtoSendoConfigurado = null; let totalVendaAtual = 0; let totalItensCarrinho = 0; let ultimoPedidoSalvo = null; let taxaEntregaConfigurada = 3.00; let indexSendoEditado = null; let listaClientesGlobal = [];
-let caixaAberto = localStorage.getItem('caixa_aberto') === 'true'; let fundoDeTroco = parseFloat(localStorage.getItem('caixa_fundo')) || 0;
-let chartInstHoras = null; let chartInstProdutos = null; let chartInstAdicionais = null;
-const DICIONARIO_SOCIOS = { "1111": "Sócio A", "2222": "Sócio B" }; let pinDigitado = "";
+// ==========================================================================
+// VARIÁVEIS GLOBAIS DO SISTEMA E INICIALIZAÇÃO
+// ==========================================================================
+var ORDERS_URL = '/api/orders';
+var PRODUCTS_URL = '/api/products';
+
+// 🚀 AS MEMÓRIAS DO CAIXA (Avisando para começar sempre na aba Açaí!):
+var produtosTodos = [];
+var categoriaAtual = 'Açaí'; // 👈 É ESSA PALAVRA QUE FAZ A TELA ABRIR PREENCHIDA!
+var carrinho = [];
+var totalItensCarrinho = 0;
+var totalVendaAtual = 0;
+var indexSendoEditado = null;
+var produtoSendoConfigurado = null;
+var taxaEntregaConfigurada = 0;
+var ultimoPedidoSalvo = null;
 
 function formatarDataHora(isoString) { if (!isoString) return ""; const d = new Date(isoString); return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
 
+// LEITOR DE TECLADO FÍSICO (ATALHOS DO CAIXA + DIGITAÇÃO DA SENHA PIN)
 document.addEventListener('keydown', (event) => {
-    if (!document.getElementById('product-grid')) return;
-    if (event.key === 'F2') { event.preventDefault(); finalizarVenda(); }
-    if (event.key === 'Escape') { event.preventDefault(); fecharModal(); fecharModalPagamento(); fecharModalSucesso(); }
+    // 1. Atalhos gerais do Caixa Físico
+    if (document.getElementById('product-grid')) {
+        if (event.key === 'F2') { event.preventDefault(); finalizarVenda(); }
+    }
+
+    if (event.key === 'Escape') { 
+        event.preventDefault(); 
+        if (typeof fecharModal === 'function') fecharModal(); 
+        if (typeof fecharModalPagamento === 'function') fecharModalPagamento(); 
+        if (typeof fecharModalSucesso === 'function') fecharModalSucesso(); 
+        limparPin(); // Limpa o PIN no ESC
+    }
+
+    // 2. LEITOR DE TECLADO FÍSICO PARA A SENHA (PIN)
+    // Evita interceptar se o usuário estiver digitando observações em um campo de texto normal
+    const tagAtiva = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    const ehCampoTexto = tagAtiva === 'input' || tagAtiva === 'textarea' || tagAtiva === 'select';
+    const pinDisplay = document.getElementById('pin-display') || document.getElementById('pin-visor');
+    const digitandoNoVisor = document.activeElement === pinDisplay;
+
+    if (!ehCampoTexto || digitandoNoVisor) {
+        const telaBloqueio = document.getElementById('tela-bloqueio-admin');
+        const bloqueioVisivel = telaBloqueio && (window.getComputedStyle(telaBloqueio).display !== 'none');
+        
+        if (pinDisplay || bloqueioVisivel) {
+            // Se pressionou um número de 0 a 9 no teclado
+            if (event.key >= '0' && event.key <= '9') {
+                event.preventDefault();
+                digitarPin(event.key);
+            }
+            // Se pressionou Backspace (Apagar último número)
+            if (event.key === 'Backspace') {
+                event.preventDefault();
+                apagarUltimoDigitoPin();
+            }
+        }
+    }
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
     try { const resConfig = await fetch('/api/config'); const config = await resConfig.json(); if (config.taxaEntregaPadrao !== undefined) { taxaEntregaConfigurada = parseFloat(config.taxaEntregaPadrao); const elTaxaAdmin = document.getElementById('config-taxa-entrega'); if (elTaxaAdmin) elTaxaAdmin.value = taxaEntregaConfigurada.toFixed(2); } } catch(e) {}
     if (document.getElementById('product-grid')) { carregarProdutos(); carregarAlertaPedidosOnline(); setInterval(carregarAlertaPedidosOnline, 5000); }
-    if (document.getElementById('lista-produtos')) { if (sessionStorage.getItem('admin_autenticado') === 'true') liberarPainelAdmin(); else { document.getElementById('tela-bloqueio-admin').style.display = 'flex'; document.getElementById('painel-conteudo-protegido').style.display = 'none'; } }
+    if (document.getElementById('lista-produtos')) { if (sessionStorage.getItem('admin_autenticado') === 'true') liberarPainelAdmin(); else { const tela = document.getElementById('tela-bloqueio-admin'); if(tela) tela.style.display = 'flex'; const cont = document.getElementById('painel-conteudo-protegido'); if(cont) cont.style.display = 'none'; } }
     if (document.getElementById('panel-cozinha')) { carregarPedidosCozinha(); setInterval(carregarPedidosCozinha, 4000); }
 });
 
-// LOGIN E ADMIN
-function digitarPin(numero) { if (pinDigitado.length >= 4) return; pinDigitado += numero; document.getElementById('pin-visor').innerText = "•".repeat(pinDigitado.length); if (pinDigitado.length === 4) setTimeout(verificarPin, 200); }
-function limparPin() { pinDigitado = ""; document.getElementById('pin-visor').innerText = ""; }
-function verificarPin() { if (DICIONARIO_SOCIOS[pinDigitado]) { sessionStorage.setItem('admin_autenticado', 'true'); sessionStorage.setItem('admin_usuario', DICIONARIO_SOCIOS[pinDigitado]); liberarPainelAdmin(); } else { alert("❌ PIN Incorreto! Acesso negado."); limparPin(); } }
+// ==========================================================================
+// LOGIN E ADMIN (COM DICIONÁRIO DE SENHAS E TECLADO FÍSICO)
+// ==========================================================================
+const DICIONARIO_SOCIOS = {
+    "1234": "Leandro (Sócio-Dono)",
+    "0000": "Taysa (Sócio-Dono)",
+    "2026": "Administrador"
+};
+
+let pinDigitado = ""; 
+
+function digitarPin(numero) { 
+    if (pinDigitado.length >= 4) return;
+    pinDigitado += numero;
+    atualizarVisorPin();
+
+    // GATILHO AUTOMÁTICO: Assim que o 4º dígito entra, verifica a senha!
+    if (pinDigitado.length === 4) {
+        setTimeout(() => {
+            verificarPin();
+        }, 200); 
+    }
+}
+
+function apagarUltimoDigitoPin() {
+    if (pinDigitado.length > 0) {
+        pinDigitado = pinDigitado.slice(0, -1);
+        atualizarVisorPin();
+    }
+}
+
+function atualizarVisorPin() {
+    const pinDisplay = document.getElementById('pin-display') || document.getElementById('pin-visor');
+    if (pinDisplay) {
+        if (pinDisplay.value !== undefined) pinDisplay.value = '•'.repeat(pinDigitado.length);
+        else pinDisplay.innerText = '•'.repeat(pinDigitado.length);
+    }
+}
+
+function limparPin() { 
+    pinDigitado = ""; 
+    atualizarVisorPin();
+}
+
+function verificarPin() { 
+    if (DICIONARIO_SOCIOS[pinDigitado]) { 
+        sessionStorage.setItem('admin_autenticado', 'true'); 
+        sessionStorage.setItem('admin_usuario', DICIONARIO_SOCIOS[pinDigitado]); 
+        limparPin();
+        liberarPainelAdmin(); 
+    } else { 
+        alert("❌ PIN Incorreto! Acesso negado."); 
+        limparPin(); 
+    } 
+}
+
 function liberarPainelAdmin() {
-    document.getElementById('tela-bloqueio-admin').style.display = 'none'; document.getElementById('painel-conteudo-protegido').style.display = 'block';
-    const elSocio = document.getElementById('nome-socio-logado'); if (elSocio) elSocio.innerText = sessionStorage.getItem('admin_usuario');
+    const telaBloqueio = document.getElementById('tela-bloqueio-admin');
+    const painelProtegido = document.getElementById('painel-conteudo-protegido');
+    if (telaBloqueio) telaBloqueio.style.display = 'none'; 
+    if (painelProtegido) painelProtegido.style.display = 'block';
+    
+    const elSocio = document.getElementById('nome-socio-logado'); 
+    if (elSocio) elSocio.innerText = sessionStorage.getItem('admin_usuario') || 'Administrador';
+    
     carregarProdutosAdmin(); carregarHistoricoVendas(); carregarMovimentacoesCaixa(); atualizarTelaCaixa(); carregarGraficosDashboard(); if(typeof carregarCRM === 'function') carregarCRM(); 
     const hojeStr = new Date().toISOString().split('T')[0]; const elIni = document.getElementById('data-inicio-filter'); const elFim = document.getElementById('data-fim-filter');
     if (elIni && !elIni.value) elIni.value = hojeStr; if (elFim && !elFim.value) elFim.value = hojeStr;
 }
+
 function fazerLogoutAdmin() { sessionStorage.removeItem('admin_autenticado'); sessionStorage.removeItem('admin_usuario'); window.location.reload(); }
 function sairParaCaixa() { window.location.href = "index.html"; }
 
@@ -40,7 +146,9 @@ async function salvarTaxaEntregaAdmin() {
     try { const res = await fetch('/api/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ taxaEntregaPadrao: novaTaxa }) }); if (res.ok) { taxaEntregaConfigurada = novaTaxa; alert(`✅ Sucesso! Taxa alterada para R$ ${novaTaxa.toFixed(2)}.`); } } catch(e) {}
 }
 
+// ==========================================================================
 // ALERTA ONLINE E APROVAÇÃO
+// ==========================================================================
 async function carregarAlertaPedidosOnline() {
     const barra = document.getElementById('alerta-pedidos-online'); const botoes = document.getElementById('lista-botoes-online'); const txt = document.getElementById('txt-alerta-online'); if (!barra) return;
     try {
@@ -58,7 +166,9 @@ async function aprovarPedidoOnline(pedido) {
     try { const res = await fetch(`/api/orders/${pedido.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'Pendente' }) }); if (res.ok) { alert(`✅ Pedido #${pedido.id} aprovado com sucesso!`); carregarAlertaPedidosOnline(); atualizarTelaCaixa(); carregarPedidosCozinha(); if(typeof carregarCRM === 'function') carregarCRM(); } } catch(e) {}
 }
 
+// ==========================================================================
 // CAIXA FÍSICO
+// ==========================================================================
 async function carregarProdutos() { try { const response = await fetch('/api/products'); produtosTodos = await response.json(); renderizarProdutos(); } catch (error) {} }
 function renderizarProdutos() {
     const grid = document.getElementById('product-grid'); if (!grid) return; grid.innerHTML = '';
@@ -151,7 +261,9 @@ function atualizarCarrinhoUI() {
 }
 function removerDoCarrinho(index) { carrinho.splice(index, 1); atualizarCarrinhoUI(); }
 
+// ==========================================================================
 // FECHAMENTO
+// ==========================================================================
 function finalizarVenda() {
     if (carrinho.length === 0) { alert('⚠️ O carrinho está vazio!'); return; }
     const valorTotalStr = document.getElementById('total-price').innerText.replace('R$', '').trim(); totalItensCarrinho = parseFloat(valorTotalStr); totalVendaAtual = totalItensCarrinho;
@@ -294,6 +406,12 @@ async function gerarRelatorioPeriodo() { /* Omitido */ }
 // ==========================================================================
 // 🔥 IMPRESSÃO DUPLA COM QR CODE PIX (INTELIGENTE) 🔥
 // ==========================================================================
+// ==========================================================================
+// 🔥 IMPRESSÃO DUPLA COM QR CODE PIX (INTELIGENTE E CORRIGIDO) 🔥
+// ==========================================================================
+// ==========================================================================
+// 🔥 IMPRESSÃO DUPLA COM QR CODE PIX (ALTA NITIDEZ E LEITURA RÁPIDA) 🔥
+// ==========================================================================
 async function reimprimirCupomCliente(id) {
     try {
         const res = await fetch('/api/orders'); const orders = await res.json();
@@ -319,18 +437,20 @@ async function reimprimirCupomCliente(id) {
         }
         let statusTexto = (o.status || '').toUpperCase(); if (o.status === 'Cancelado') statusTexto += ` (Por ${o.canceladoPor})`;
 
-        // FUNÇÃO QUE GERA A VIA INTELIGENTE (COM QR CODE SOMENTE PARA CLIENTE E EM DINHEIRO)
         const gerarVia = (nomeDaVia) => {
             let pixHtml = '';
             
-            // SE FOR A VIA DO CLIENTE **E** A FORMA DE PAGAMENTO FOR DINHEIRO...
-            if (nomeDaVia === "VIA DO CLIENTE" && o.formaPagamento.includes('Dinheiro')) {
+            // 🚀 AGORA SIM: Sai em toda "Via do Cliente" para facilitar o pagamento e divulgação!
+            if (nomeDaVia === "VIA DO CLIENTE") {
+                const caminhoImagemPix = `${window.location.origin}/pix.png`;
+                
                 pixHtml = `
                     <div style="text-align: center; margin-top: 15px; border-top: 2px dashed #000; padding-top: 15px; page-break-inside: avoid;">
                         <strong style="font-size: 16px; color: #000;">PAGUE COM PIX ⚡</strong><br>
-                        <small style="font-size: 13px; font-weight: bold; color: #000;">Mudou de ideia? Pague no PIX agora:</small><br>
-                        <!-- LEANDRO: Salve a imagem do seu QR Code PIX do banco como "pix.png" e coloque na pasta "public" do seu sistema -->
-                        <img src="pix.png" style="width: 120px; height: 120px; margin: 10px 0;" alt="[QR Code do PIX aqui]" onerror="this.style.display='none'" /><br>
+                        <small style="font-size: 13px; font-weight: bold; color: #000;">Escaneie o QR Code abaixo para pagar:</small><br>
+                        <div style="background: #fff; padding: 6px; display: inline-block; margin: 10px auto; border-radius: 4px;">
+                            <img src="${caminhoImagemPix}" style="width: 170px; height: 170px; display: block; image-rendering: pixelated; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; filter: contrast(200%) grayscale(100%);" alt="[QR Code PIX]" onerror="this.style.display='none'" />
+                        </div><br>
                         <strong style="font-size: 14px; color: #000;">Chave PIX: (Seu Celular/CNPJ)</strong><br>
                         <small style="font-size: 12px; color: #000;">Meu Cantinho Açaí</small>
                     </div>
@@ -374,7 +494,8 @@ async function reimprimirCupomCliente(id) {
         };
 
         const JANELAPRINT = window.open('', '_blank', 'width=400,height=600');
-        const html = `<html><head><style>@media print { @page { margin: 0; } body { margin: 0; padding: 10px; } * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; color: #000 !important; font-weight: bold !important; } } body { font-family: 'Arial', sans-serif; width: 300px; margin: 0 auto; color: #000; padding: 10px; box-sizing: border-box; } .header { text-align: center; margin-bottom: 10px; } .logo-txt { font-size: 22px; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: -0.5px; color: #000; } .via-badge { border: 2px solid #000; display: inline-block; padding: 4px 10px; font-size: 14px; font-weight: 900; margin: 8px 0; border-radius: 4px; color: #000; } .sub-header { font-size: 13px; color: #000; margin: 0; font-weight: 600; } .order-badge { border: 4px solid #000; background: #fff; text-align: center; padding: 10px; margin: 15px 0; border-radius: 6px; } .order-badge h2 { margin: 0; font-size: 38px; font-weight: 900; color: #000; } .order-badge p { margin: 0; font-size: 16px; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; color: #000; } .info-section { margin-bottom: 15px; border-bottom: 2px dashed #000; padding-bottom: 10px; font-size: 14px; line-height: 1.5; font-weight: 900; color: #000; } .items { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; } .totals { padding-top: 5px; } .grand-total { display: flex; justify-content: space-between; font-size: 22px; font-weight: 900; margin-top: 10px; border-top: 3px solid #000; padding-top: 10px; color: #000; } .footer { text-align: center; margin-top: 20px; font-size: 14px; font-weight: 900; color: #000; padding-bottom: 20px; } .cut-line { border-top: 2px dashed #000; margin: 30px 0; width: 100%; position: relative; text-align: center; } .cut-line span { background: #fff; padding: 0 10px; position: relative; top: -10px; font-size: 12px; font-weight: 900; color: #000; }</style></head><body>${gerarVia("VIA DO ESTABELECIMENTO")}<div class="cut-line"><span>✂️ CORTAR AQUI ✂️</span></div>${gerarVia("VIA DO CLIENTE")}<script>window.onload = () => { window.print(); }</script></body></html>`;
+        // 🚀 ADICIONADO REFORÇO DE NITIDEZ DIRETO NA MÁQUINA DE IMPRESSÃO (CSS PRINT):
+        const html = `<html><head><style>@media print { @page { margin: 0; } body { margin: 0; padding: 10px; } * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; color: #000 !important; font-weight: bold !important; } img { image-rendering: pixelated !important; image-rendering: crisp-edges !important; filter: contrast(200%) !important; } } body { font-family: 'Arial', sans-serif; width: 300px; margin: 0 auto; color: #000; padding: 10px; box-sizing: border-box; } .header { text-align: center; margin-bottom: 10px; } .logo-txt { font-size: 22px; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: -0.5px; color: #000; } .via-badge { border: 2px solid #000; display: inline-block; padding: 4px 10px; font-size: 14px; font-weight: 900; margin: 8px 0; border-radius: 4px; color: #000; } .sub-header { font-size: 13px; color: #000; margin: 0; font-weight: 600; } .order-badge { border: 4px solid #000; background: #fff; text-align: center; padding: 10px; margin: 15px 0; border-radius: 6px; } .order-badge h2 { margin: 0; font-size: 38px; font-weight: 900; color: #000; } .order-badge p { margin: 0; font-size: 16px; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; color: #000; } .info-section { margin-bottom: 15px; border-bottom: 2px dashed #000; padding-bottom: 10px; font-size: 14px; line-height: 1.5; font-weight: 900; color: #000; } .items { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; } .totals { padding-top: 5px; } .grand-total { display: flex; justify-content: space-between; font-size: 22px; font-weight: 900; margin-top: 10px; border-top: 3px solid #000; padding-top: 10px; color: #000; } .footer { text-align: center; margin-top: 20px; font-size: 14px; font-weight: 900; color: #000; padding-bottom: 20px; } .cut-line { border-top: 2px dashed #000; margin: 30px 0; width: 100%; position: relative; text-align: center; } .cut-line span { background: #fff; padding: 0 10px; position: relative; top: -10px; font-size: 12px; font-weight: 900; color: #000; }</style></head><body>${gerarVia("VIA DO ESTABELECIMENTO")}<div class="cut-line"><span>✂️ CORTAR AQUI ✂️</span></div>${gerarVia("VIA DO CLIENTE")}<script>window.onload = () => { setTimeout(() => { window.print(); }, 500); }</script></body></html>`;
         JANELAPRINT.document.write(html); JANELAPRINT.document.close();
     } catch (e) { console.error(e); }
 }

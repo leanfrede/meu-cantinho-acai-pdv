@@ -344,6 +344,7 @@ app.post('/api/caixa', async (req, res) => {
     } catch (e) { res.status(500).json({ error: "Erro ao lançar no caixa" }); }
 });
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log("🚀 Servidor CLOUD e BLINDADO rodando em http://localhost:3000");
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });

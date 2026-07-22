@@ -131,3 +131,76 @@ body {
         max-height: none;
     }
 }
+/* ==========================================================================
+   📱 MODO MOBILE E TABLET (RESPONSIVIDADE DO PDV)
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+    /* 1. Trava a largura e remove rolagens horizontais indesejadas */
+    body, html {
+        width: 100% !important;
+        overflow-x: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* 2. Ajusta o Cabeçalho (Topo) para empilhar e organizar os botões */
+    header, .navbar, .top-bar, .header {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        padding: 10px !important;
+        text-align: center !important;
+        gap: 8px !important;
+    }
+
+    /* Esconde atalhos de teclado no celular (pois não tem teclado físico F2, ESC) */
+    .atalhos, .keyboard-shortcuts {
+        display: none !important;
+    }
+
+    /* Botões do topo (Cozinha, Cardápio, Admin) se ajustam em grade de botões */
+    header div, .navbar div, .header-buttons {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        width: 100% !important;
+        gap: 6px !important;
+    }
+
+    header button, .navbar button, .header a, button {
+        font-size: 13px !important;
+        padding: 10px !important;
+        min-height: 44px !important; /* Padrão de acessibilidade para o toque do dedo */
+    }
+
+    /* 3. O SEGREDO DE OURO: Empilha a Grade de Produtos e o Pedido Atual verticalmente! */
+    main, .container, .pdv-container, .main-content, .layout-grid, .row {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        padding: 8px !important;
+        gap: 15px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Garante que o Carrinho (Pedido Atual) e a lista de Produtos tomem 100% da tela */
+    .produtos-section, .carrinho-section, .pdv-left, .pdv-right, .card, #lista-produtos {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        flex: none !important;
+    }
+
+    /* 4. Grade dos Produtos no Celular: Deixa em 2 colunas perfeitas para o toque */
+    .grid-produtos, #product-grid, .produtos-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    /* Ajusta a tabela do carrinho para não estourar a tela */
+    table {
+        width: 100% !important;
+        font-size: 12px !important;
+    }
+}

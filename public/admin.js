@@ -1,5 +1,5 @@
-const ORDERS_URL = 'http://localhost:3000/api/orders';
-const PRODUCTS_URL = 'http://localhost:3000/api/products';
+var ORDERS_URL = '/api/orders';
+var PRODUCTS_URL = '/api/products';
 
 // =====================================================================
 // 🗝️ CHAVE MESTRA DO SÓCIO-DONO (Liberar permissão total na Nuvem)
